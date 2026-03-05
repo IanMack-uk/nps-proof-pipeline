@@ -823,6 +823,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     offdiag_max6 = float(np.max(offdiag6)) if n6 > 1 else 0.0
     off_diagonal_nonpositive6 = bool(offdiag_max6 <= tol_sign6)
     candidate_z_matrix6 = off_diagonal_nonpositive6
+    candidate_m_matrix6 = bool(off_diagonal_nonpositive6 and np.isfinite(min_margin6) and min_margin6 > 0.0)
 
     task6_checks: list[dict[str, Any]] = []
     task6_checks.append(
@@ -879,7 +880,9 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         },
         "derived_sign_pattern": {
             "off_diagonal_nonpositive": off_diagonal_nonpositive6,
+            "offdiagonal_nonpositive": off_diagonal_nonpositive6,
             "candidate_Z_matrix": candidate_z_matrix6,
+            "candidate_m_matrix": candidate_m_matrix6,
             "tolerance": tol_sign6,
         },
         "checks": task6_checks,
