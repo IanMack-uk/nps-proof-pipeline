@@ -459,6 +459,15 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     else:
         violations2 = 0
 
+    if mixed_sign2:
+        constraint2 = "mixed"
+    elif nonnegative2:
+        constraint2 = "nonnegative"
+    elif nonpositive2:
+        constraint2 = "nonpositive"
+    else:
+        constraint2 = "mixed"
+
     nnz2 = int(np.sum(np.abs(H_wtheta) > 0.0))
     nnz_by_col2 = [int(np.sum(np.abs(H_wtheta[:, j]) > 0.0)) for j in range(theta_dim2)]
     max_support_radius2 = 0
@@ -492,11 +501,21 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
                     slice_violations = slice_viol_nonpos
                 else:
                     slice_violations = 0
+
+                if slice_mixed:
+                    slice_constraint = "mixed"
+                elif slice_nonneg:
+                    slice_constraint = "nonnegative"
+                elif slice_nonpos:
+                    slice_constraint = "nonpositive"
+                else:
+                    slice_constraint = "mixed"
                 readiness_slice_details2 = {
                     "skipped": False,
                     "selected_indices": rows,
                     "row_count": int(len(rows)),
                     "sign_pattern": {
+                        "constraint": slice_constraint,
                         "tolerance": tol_sign2,
                         "nonnegative": slice_nonneg,
                         "nonpositive": slice_nonpos,
@@ -569,6 +588,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
             id="CHK.C2.H_WTHETA.SIGN_PATTERN_RECORDED",
             ok=True,
             details={
+                "constraint": constraint2,
                 "tolerance": tol_sign2,
                 "nonnegative": nonnegative2,
                 "nonpositive": nonpositive2,
@@ -629,6 +649,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
             "max_support_radius": max_support_radius2,
         },
         "sign_pattern": {
+            "constraint": constraint2,
             "tolerance": tol_sign2,
             "nonnegative": nonnegative2,
             "nonpositive": nonpositive2,
