@@ -36,6 +36,14 @@ def _extract_certified_objective(cas: dict[str, Any]) -> str | None:
     This is schema-tolerant by design because upstream artefact schemas may evolve.
     """
 
+    derivative_def = cas.get("derivative_definition")
+    if isinstance(derivative_def, dict):
+        v0 = derivative_def.get("certified_objective")
+        if isinstance(v0, str):
+            return v0
+        if isinstance(v0, dict) and isinstance(v0.get("id"), str):
+            return v0.get("id")
+
     v = cas.get("certified_objective")
     if isinstance(v, str):
         return v
