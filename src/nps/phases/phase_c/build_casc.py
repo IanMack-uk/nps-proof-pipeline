@@ -101,6 +101,13 @@ def _task5_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task9_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("ok") is not True:
+            return False
+    return True
+
+
 def _task6_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     for chk in checks:
         if chk.get("ok") is not True:
@@ -1379,6 +1386,216 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # ---------------------------------------------------------------------
+    # Taskpack 9 (M-matrix criteria and inverse positivity)
+    # Must fail loudly if required upstream artefacts are missing.
+    # ---------------------------------------------------------------------
+    out_m_matrix = run_dir / "M_MATRIX_CERT.json"
+    out_inv_pos = run_dir / "INVERSE_POSITIVITY_CERT.json"
+
+    required_paths9 = {
+        "DIAGONAL_DOMINANCE": out_ddom,
+        "COMPARISON_INEQUALITIES": out_cmp,
+        "NEUMANN_SERIES": out_neumann,
+        "HESSIAN_BLOCKS": out_blocks,
+    }
+    missing9 = [k for k, p in required_paths9.items() if not p.exists()]
+    if missing9:
+        raise RuntimeError(f"Task 9: missing required inputs: {', '.join(sorted(missing9))}")
+
+    ddom_json9 = _read_json(out_ddom)
+    cmp_json9 = _read_json(out_cmp)
+    neumann_json9 = _read_json(out_neumann)
+    blocks_json9 = _read_json(out_blocks)
+
+    # Preconditions (authoritative via upstream tasks)
+    strict_dd_ok9 = False
+    checks6_9 = ddom_json9.get("checks") if isinstance(ddom_json9.get("checks"), list) else []
+    for chk in checks6_9:
+        if isinstance(chk, dict) and chk.get("id") == "CHK.C6.DOMINANCE.STRICT_PASS":
+            strict_dd_ok9 = bool(chk.get("ok") is True)
+            break
+
+    offdiag_nonpos_ok9 = False
+    checks7_9 = cmp_json9.get("checks") if isinstance(cmp_json9.get("checks"), list) else []
+    for chk in checks7_9:
+        if isinstance(chk, dict) and chk.get("id") == "CHK.C7.ZMATRIX.OFFDIAG_NONPOSITIVE":
+            offdiag_nonpos_ok9 = bool(chk.get("ok") is True)
+            break
+
+    preconditions_ok9 = bool(strict_dd_ok9 and offdiag_nonpos_ok9)
+    theorem_used9 = "Z_MATRIX_PLUS_STRICT_DD_IMPLIES_NONSINGULAR_M_MATRIX"
+
+    inverse_sign_conclusion9: dict[str, Any] = {
+        "matrix": "C := -H",
+        "is_nonsingular_m_matrix": bool(preconditions_ok9),
+        "inverse_entrywise_nonnegative": bool(preconditions_ok9),
+        "theorem_used": theorem_used9,
+    }
+
+    task9_checks: list[dict[str, Any]] = []
+    task9_checks.append(
+        _mk_check(
+            id="CHK.C9.MMATRIX.PRECONDITIONS_PASS",
+            ok=bool(preconditions_ok9),
+            details={
+                "task6": {
+                    "strict_diagonal_dominance": strict_dd_ok9,
+                    "check_id": "CHK.C6.DOMINANCE.STRICT_PASS",
+                    "artifact": out_ddom.name,
+                },
+                "task7": {
+                    "off_diagonal_nonpositive": offdiag_nonpos_ok9,
+                    "check_id": "CHK.C7.ZMATRIX.OFFDIAG_NONPOSITIVE",
+                    "artifact": out_cmp.name,
+                },
+            },
+        )
+    )
+    task9_checks.append(
+        _mk_check(
+            id="CHK.C9.MMATRIX.NONSINGULAR_CONCLUDED",
+            ok=bool(preconditions_ok9),
+            details={
+                "theorem_used": theorem_used9,
+                "logic": "Z-matrix + strict diagonal dominance => nonsingular M-matrix",
+            },
+        )
+    )
+    task9_checks.append(
+        _mk_check(
+            id="CHK.C9.INVERSE.NONNEGATIVE_CONCLUDED",
+            ok=bool(preconditions_ok9),
+            details={
+                "conclusion": "C^{-1} >= 0 (entrywise)",
+                "basis": theorem_used9,
+            },
+        )
+    )
+
+    task9_ok = _task9_all_required_pass(task9_checks)
+
+    matrix_definition9: dict[str, Any] = {
+        "base_matrix": "H",
+        "coupling_matrix": "C := -H",
+        "block": "w_w",
+    }
+
+    m_matrix_payload: dict[str, Any] = {
+        "schema_version": "C-TASK09.v1",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            "DIAGONAL_DOMINANCE_CERT": str(out_ddom),
+            "COMPARISON_INEQUALITIES_CERT": str(out_cmp),
+            "NEUMANN_SERIES_CERT": str(out_neumann),
+            "HESSIAN_BLOCKS": str(out_blocks),
+        },
+        "matrix_definition": matrix_definition9,
+        "upstream_summary": {
+            "task6": {
+                "strict_diagonal_dominance": strict_dd_ok9,
+            },
+            "task7": {
+                "off_diagonal_nonpositive": offdiag_nonpos_ok9,
+            },
+            "task8": {
+                "status": neumann_json9.get("status"),
+            },
+            "task4": {
+                "blocks_present": isinstance(blocks_json9.get("blocks"), dict),
+            },
+        },
+        "inverse_sign_conclusion": inverse_sign_conclusion9,
+        "checks": task9_checks,
+        "status": "PASS" if task9_ok else "FAIL",
+    }
+
+    inv_pos_payload: dict[str, Any] = {
+        "schema_version": "C-TASK09.v1",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            "M_MATRIX_CERT": str(out_m_matrix),
+            "DIAGONAL_DOMINANCE_CERT": str(out_ddom),
+            "COMPARISON_INEQUALITIES_CERT": str(out_cmp),
+            "NEUMANN_SERIES_CERT": str(out_neumann),
+        },
+        "matrix": "C := -H",
+        "inverse_sign_conclusion": inverse_sign_conclusion9,
+        "checks": task9_checks,
+        "status": "PASS" if task9_ok else "FAIL",
+    }
+
+    write_json(out_m_matrix, m_matrix_payload)
+    write_json(out_inv_pos, inv_pos_payload)
+
+    out_task9_report = run_dir / "PhaseC_TASK9_M_MATRIX_REPORT.md"
+    out_task9_report.write_text(
+        "\n".join(
+            [
+                "# Phase C Taskpack 9 Report",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Date (UTC): {created_at}",
+                "Generated by: nps.phases.phase_c.build_casc (Taskpack 9 step)",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Run",
+                "",
+                f"    {run_dir.name}",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Matrix Definition",
+                "",
+                "C := -H",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Preconditions",
+                "",
+                "  Property                     Status",
+                "  ---------------------------- --------",
+                f"  Strict diagonal dominance     {'PASS' if strict_dd_ok9 else 'FAIL'}",
+                f"  Off-diagonal nonpositivity    {'PASS' if offdiag_nonpos_ok9 else 'FAIL'}",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Theorem Used",
+                "",
+                "Z-matrix + strict diagonal dominance ⇒ nonsingular M-matrix",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Certification Result",
+                "",
+                "  Property                        Value",
+                "  ------------------------------- -------",
+                f"  is_nonsingular_m_matrix          {inverse_sign_conclusion9['is_nonsingular_m_matrix']}",
+                f"  inverse_entrywise_nonnegative    {inverse_sign_conclusion9['inverse_entrywise_nonnegative']}",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Checks",
+                "",
+                "  Check                                  Status",
+                "  -------------------------------------- --------",
+                *[f"  {chk['id']:<38} {chk.get('status','FAIL')}" for chk in task9_checks],
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Result",
+                "",
+                f"    {'DONE' if task9_ok else 'BLOCKED'}",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -1562,6 +1779,9 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_task7_report,
         out_neumann,
         out_task8_report,
+        out_m_matrix,
+        out_inv_pos,
+        out_task9_report,
         out_inv,
         out_exposure,
     ]
