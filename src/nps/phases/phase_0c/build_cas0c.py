@@ -59,28 +59,25 @@ def _safe_relpath(path: Path, start: Path) -> str:
 
 
 def _get_casa_certified_objective(casa: dict) -> str | None:
-    """
-    Resolve CAS-A certified objective convention across schema variants.
-    """
     derivative_def = casa.get("derivative_definition", {})
     if isinstance(derivative_def, dict):
-        value = derivative_def.get("certified_objective")
-        if value:
-            return value
-
-    # legacy fallback
-    value = casa.get("certified_objective")
-    if value:
-        return value
-
+        v = derivative_def.get("certified_objective")
+        if isinstance(v, str) and v:
+            return v
+    v = casa.get("certified_objective")
+    if isinstance(v, str) and v:
+        return v
     return None
 
 
 def _get_casa_certified_objective_source(casa: dict) -> str:
     derivative_def = casa.get("derivative_definition", {})
-    if isinstance(derivative_def, dict) and derivative_def.get("certified_objective"):
-        return "derivative_definition.certified_objective"
-    if casa.get("certified_objective"):
+    if isinstance(derivative_def, dict):
+        v = derivative_def.get("certified_objective")
+        if isinstance(v, str) and v:
+            return "derivative_definition.certified_objective"
+    v = casa.get("certified_objective")
+    if isinstance(v, str) and v:
         return "certified_objective (legacy)"
     return "missing"
 
