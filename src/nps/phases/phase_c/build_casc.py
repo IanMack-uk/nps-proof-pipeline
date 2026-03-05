@@ -70,6 +70,15 @@ def _task3_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _mk_check(*, id: str, ok: bool, details: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "id": id,
+        "ok": bool(ok),
+        "status": "PASS" if ok else "FAIL",
+        "details": details,
+    }
+
+
 def _phase_c_entry_approved(path: Path) -> bool:
     lines = path.read_text(encoding="utf-8").strip().splitlines()
     return bool(lines) and lines[-1].strip() == "Phase C Entry Gate: APPROVED"
@@ -356,33 +365,46 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     )
 
     task3_checks: list[dict[str, Any]] = []
+    dim_w = int(w_star.shape[0])
+    is_square = bool(H.ndim == 2 and H.shape[0] == H.shape[1])
+    dim_match = bool(is_square and int(H.shape[0]) == dim_w)
+    finite_values = bool(np.isfinite(H).all())
+    tol_policy_ok = bool(tol_sym == 1e-10)
+
     task3_checks.append(
-        {
-            "check_id": "CHK.C3.HESSIAN.COMPUTED",
-            "ok": True,
-            "details": "H computed from SignedObjective.hess at w_star.",
-        }
+        _mk_check(
+            id="CHK.C3.HESSIAN_DIMENSION_MATCH",
+            ok=dim_match,
+            details={"dim_w": dim_w, "h_shape": [int(H.shape[0]), int(H.shape[1])]},
+        )
     )
     task3_checks.append(
-        {
-            "check_id": "CHK.C3.HESSIAN.STRUCTURAL_BASIS",
-            "ok": True,
-            "details": structural_basis_rule,
-        }
+        _mk_check(
+            id="CHK.C3.HESSIAN_SQUARE",
+            ok=is_square,
+            details={"h_shape": [int(H.shape[0]), int(H.shape[1])]},
+        )
     )
     task3_checks.append(
-        {
-            "check_id": "CHK.C3.HESSIAN.DIM_MATCH",
-            "ok": bool(H.shape == (int(w_star.shape[0]), int(w_star.shape[0]))),
-            "details": f"H shape={tuple(int(x) for x in H.shape)} dim_w={int(w_star.shape[0])}.",
-        }
+        _mk_check(
+            id="CHK.C3.HESSIAN_SYMMETRIC",
+            ok=bool(sym_err <= tol_sym),
+            details={"symmetry_error": sym_err, "symmetry_tol": tol_sym},
+        )
     )
     task3_checks.append(
-        {
-            "check_id": "CHK.C3.HESSIAN.SYMMETRIC",
-            "ok": bool(sym_err <= tol_sym),
-            "details": f"symmetry_error={sym_err} tol={tol_sym}.",
-        }
+        _mk_check(
+            id="CHK.C3.HESSIAN_FINITE_VALUES",
+            ok=finite_values,
+            details={"all_finite": finite_values},
+        )
+    )
+    task3_checks.append(
+        _mk_check(
+            id="CHK.C3.HESSIAN_NUMERIC_TOLERANCE",
+            ok=tol_policy_ok,
+            details={"symmetry_tol": tol_sym, "expected": 1e-10},
+        )
     )
 
     task3_ok = _task3_all_required_pass(task3_checks)
@@ -515,7 +537,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
                 "| check_id | result | notes |",
                 "|---|---|---|",
                 *[
-                    f"| {chk['check_id']} | {'PASS' if chk.get('ok') is True else 'FAIL'} | {chk.get('details','')} |"
+                    f"| {chk['id']} | {chk.get('status','FAIL')} | {json.dumps(chk.get('details', {}), sort_keys=True)} |"
                     for chk in task3_checks
                 ],
                 "",
