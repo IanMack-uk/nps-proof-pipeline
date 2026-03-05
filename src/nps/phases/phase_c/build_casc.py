@@ -8,6 +8,7 @@ attempts without spectral escalation.
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
@@ -102,6 +103,13 @@ def _task5_all_required_pass(checks: list[dict[str, Any]]) -> bool:
 
 
 def _task9_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("ok") is not True:
+            return False
+    return True
+
+
+def _task10_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     for chk in checks:
         if chk.get("ok") is not True:
             return False
@@ -1596,6 +1604,237 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # ---------------------------------------------------------------------
+    # Taskpack 10 (Selected inverse entries and Phase D interface)
+    # Deterministic selection + witnesses; must not modify Phase C gating.
+    # ---------------------------------------------------------------------
+    out_sel_inv = run_dir / "SELECTED_INVERSE_ENTRIES.json"
+
+    if not out_blocks.exists():
+        raise RuntimeError("Task 10: missing required input HESSIAN_BLOCKS.json")
+
+    inv_sign_path = run_dir / "INVERSE_POSITIVITY_CERT.json"
+    neumann_bound_path = run_dir / "NEUMANN_SERIES_BOUND.json"
+    neumann_cert_path = run_dir / "NEUMANN_SERIES_CERT.json"
+
+    inv_kind = ""
+    inv_source_path: Path | None = None
+    inv_entrywise_nonnegative: bool | None = None
+    inv_notes = ""
+
+    if inv_sign_path.exists():
+        inv_kind = "INVERSE_POSITIVITY_CERT"
+        inv_source_path = inv_sign_path
+        try:
+            inv_json = _read_json(inv_sign_path)
+            concl = (
+                inv_json.get("inverse_sign_conclusion")
+                if isinstance(inv_json.get("inverse_sign_conclusion"), dict)
+                else {}
+            )
+            inv_entrywise_nonnegative = (
+                bool(concl.get("inverse_entrywise_nonnegative"))
+                if isinstance(concl.get("inverse_entrywise_nonnegative"), bool)
+                else None
+            )
+        except Exception:  # noqa: BLE001
+            inv_entrywise_nonnegative = None
+    elif neumann_bound_path.exists():
+        inv_kind = "NEUMANN_SERIES_BOUND"
+        inv_source_path = neumann_bound_path
+        inv_entrywise_nonnegative = False
+        inv_notes = "Neumann-series bound does not by itself certify entrywise sign; treated as unknown."
+    elif neumann_cert_path.exists():
+        inv_kind = "NEUMANN_SERIES_BOUND"
+        inv_source_path = neumann_cert_path
+        inv_entrywise_nonnegative = False
+        inv_notes = "Using NEUMANN_SERIES_CERT.json as fallback; does not certify entrywise sign."
+    else:
+        raise RuntimeError(
+            "Task 10: missing inverse-sign source (expected INVERSE_POSITIVITY_CERT.json or NEUMANN_SERIES_BOUND.json / NEUMANN_SERIES_CERT.json)"
+        )
+
+    blocks_json10 = _read_json(out_blocks)
+    blocks10 = blocks_json10.get("blocks") if isinstance(blocks_json10.get("blocks"), dict) else {}
+    Hww_raw10 = blocks10.get("w_w")
+    if not isinstance(Hww_raw10, list):
+        raise RuntimeError("Task 10: missing blocks['w_w'] in HESSIAN_BLOCKS.json")
+    Hww10 = np.asarray(Hww_raw10, dtype=float)
+    if Hww10.ndim != 2 or Hww10.shape[0] != Hww10.shape[1]:
+        raise RuntimeError("Task 10: blocks['w_w'] must be a square matrix")
+    dim10 = int(Hww10.shape[0])
+
+    rule_id10 = "C10.RULE.MINIMAL_PHASED_INTERFACE.v1"
+    rule_text10 = (
+        "Select diagonal entries (i,i) for all i in [0, dimension-1] to provide a minimal deterministic Phase D interface."
+    )
+    indices10 = list(range(dim10))
+    pairs10 = [(i, i) for i in range(dim10)]
+
+    selected_obj10: dict[str, Any] = {
+        "indices": indices10,
+        "pairs": [[int(i), int(j)] for i, j in pairs10],
+    }
+    canonical_selected10 = json.dumps(selected_obj10, sort_keys=True, separators=(",", ":"))
+    selection_hash10 = hashlib.sha256(canonical_selected10.encode("utf-8")).hexdigest()
+
+    selected_entries10: list[dict[str, Any]] = []
+    if inv_kind == "INVERSE_POSITIVITY_CERT" and inv_entrywise_nonnegative is True:
+        for i, j in pairs10:
+            selected_entries10.append(
+                {"i": int(i), "j": int(j), "sign": "+", "source": "INVERSE_POSITIVITY_CERT"}
+            )
+    else:
+        for i, j in pairs10:
+            selected_entries10.append({"i": int(i), "j": int(j), "sign": "?", "source": inv_kind})
+
+    in_bounds_indices10 = all(isinstance(i, int) and 0 <= i < dim10 for i in indices10)
+    in_bounds_pairs10 = all(0 <= int(i) < dim10 and 0 <= int(j) < dim10 for i, j in pairs10)
+    sorted_unique_indices10 = indices10 == sorted(set(indices10))
+    sorted_pairs10 = pairs10 == sorted(pairs10)
+
+    chk_rule_defined_ok10 = bool(rule_id10 and rule_text10 and len(pairs10) > 0 and in_bounds_indices10 and in_bounds_pairs10)
+    chk_deterministic_ok10 = bool(
+        sorted_unique_indices10
+        and sorted_pairs10
+        and isinstance(selection_hash10, str)
+        and selection_hash10 == hashlib.sha256(canonical_selected10.encode("utf-8")).hexdigest()
+    )
+    chk_signs_ok10 = bool(
+        inv_kind == "INVERSE_POSITIVITY_CERT"
+        and inv_entrywise_nonnegative is True
+        and all(e.get("sign") == "+" and e.get("source") == "INVERSE_POSITIVITY_CERT" for e in selected_entries10)
+    )
+
+    task10_checks: list[dict[str, Any]] = []
+    task10_checks.append(
+        _mk_check(
+            id="CHK.C10.SELECTION.RULE_DEFINED",
+            ok=chk_rule_defined_ok10,
+            details={
+                "rule_id": rule_id10,
+                "dimension": dim10,
+                "selected_indices_count": int(len(indices10)),
+                "selected_pairs_count": int(len(pairs10)),
+                "in_bounds": {"indices": in_bounds_indices10, "pairs": in_bounds_pairs10},
+            },
+        )
+    )
+    task10_checks.append(
+        _mk_check(
+            id="CHK.C10.SELECTION.DETERMINISTIC",
+            ok=chk_deterministic_ok10,
+            details={
+                "ordering": "sorted_lexicographic",
+                "selection_hash": selection_hash10,
+                "sorted_unique_indices": sorted_unique_indices10,
+                "sorted_pairs": sorted_pairs10,
+            },
+        )
+    )
+    task10_checks.append(
+        _mk_check(
+            id="CHK.C10.SELECTED_SIGNS.CERTIFIED",
+            ok=chk_signs_ok10,
+            details={
+                "inverse_sign_source_kind": inv_kind,
+                "entrywise_nonnegative": inv_entrywise_nonnegative,
+                "notes": inv_notes,
+            },
+        )
+    )
+
+    task10_ok = _task10_all_required_pass(task10_checks)
+
+    selected_payload10: dict[str, Any] = {
+        "schema_version": "C-TASK10.v2",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            "HESSIAN_BLOCKS": out_blocks.name,
+            "INVERSE_SIGN_SOURCE": inv_source_path.name if inv_source_path is not None else "",
+        },
+        "dimension": dim10,
+        "inverse_sign_source": {
+            "kind": inv_kind,
+            "entrywise_nonnegative": inv_entrywise_nonnegative,
+            "notes": inv_notes,
+        },
+        "selection": {
+            "rule_id": rule_id10,
+            "rule_text": rule_text10,
+            "basis": {"type": "pairs", "description": "Diagonal (i,i) pairs for all i in [0,dimension-1]."},
+            "selected": selected_obj10,
+        },
+        "selected_signs": {
+            "convention": "sign(C^{-1})",
+            "entries": selected_entries10,
+        },
+        "witnesses": {
+            "selection_hash": selection_hash10,
+            "ordering": "sorted_lexicographic",
+        },
+        "checks": task10_checks,
+        "status": "PASS" if task10_ok else "FAIL",
+    }
+
+    write_json(out_sel_inv, selected_payload10)
+
+    out_task10_report = run_dir / "PhaseC_TASK10_SELECTED_INVERSE_ENTRIES_REPORT.md"
+    out_task10_report.write_text(
+        "\n".join(
+            [
+                "# Phase C — Task 10 Report — Selected Inverse Entries and Phase D Interface (FINAL)",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Date (UTC): {created_at}",
+                "Generated by: `nps.phases.phase_c.build_casc` (Taskpack 10)",
+                "",
+                "---",
+                "",
+                "## 1) Inputs (authoritative)",
+                "",
+                f"Run root: `cert_artifacts/{run_dir.name}/`",
+                "",
+                "Inputs used:",
+                "- `HESSIAN_BLOCKS.json`",
+                "- inverse-sign source:",
+                f"  - `{inv_source_path.name if inv_source_path is not None else ''}`",
+                "",
+                "---",
+                "",
+                "## 2) Outputs produced",
+                "",
+                "- `SELECTED_INVERSE_ENTRIES.json` (schema_version: C-TASK10.v2)",
+                "- `PhaseC_TASK10_SELECTED_INVERSE_ENTRIES_REPORT.md` (this file)",
+                "",
+                "---",
+                "",
+                "## 3) Selection rule",
+                "",
+                f"- rule_id: {rule_id10}",
+                f"- rule_text: {rule_text10}",
+                f"- selected indices count: {len(indices10)}",
+                f"- selected pairs count: {len(pairs10)}",
+                "",
+                "---",
+                "",
+                "## 5) Verification checklist",
+                "",
+                "| check_id | result |",
+                "|---|---|",
+                *[f"| {chk['id']} | {chk.get('status','FAIL')} |" for chk in task10_checks],
+                "",
+                "---",
+                "",
+                f"Task 10 status: **{'DONE' if task10_ok else 'BLOCKED'}**",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -1782,6 +2021,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_m_matrix,
         out_inv_pos,
         out_task9_report,
+        out_sel_inv,
+        out_task10_report,
         out_inv,
         out_exposure,
     ]

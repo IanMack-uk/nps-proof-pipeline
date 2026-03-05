@@ -1,29 +1,33 @@
-# Phase C — Task 10 Verification Rules — Selected Inverse Entries and Phase D Interface
 
-This file defines the **authoritative check list** for Task 10.
+---
 
-All check results must appear in the run-root report and in the corresponding JSON artefact(s).
-
-## Tolerances
-
-- Default numeric tolerance for symmetry / zero-tests: `1e-10` (override explicitly if needed)
-- Default “structural zero” tolerance for sparsity tests: `1e-12` (override explicitly if needed)
+### 3) `phase_C_task10_verification_rules_FINAL.md`
+```md
+# Phase C — Task 10 Verification Rules (FINAL)
+**Taskpack:** C-TASK10
 
 ## Required checks
 
 ### CHK.C10.SELECTION.RULE_DEFINED
-- Description:
-- PASS condition:
-- FAIL condition:
-- Evidence source: upstream / computed
-### CHK.C10.SELECTION.DETERMINISTIC
-- Description:
-- PASS condition:
-- FAIL condition:
-- Evidence source: upstream / computed
-### CHK.C10.SELECTED_SIGNS.CERTIFIED
-- Description:
-- PASS condition:
-- FAIL condition:
-- Evidence source: upstream / computed
+PASS if:
+- `selection.rule_id` and `selection.rule_text` are non-empty
+- `selection.selected.pairs` exists, non-empty, and in bounds
+- `selection.selected.indices` exists, sorted unique, and in bounds
 
+FAIL otherwise.
+
+### CHK.C10.SELECTION.DETERMINISTIC
+PASS if:
+- `pairs` sorted lexicographically; `indices` sorted unique
+- `witnesses.selection_hash` exists and matches sha256(canonical(selection.selected))
+- `witnesses.ordering` declares the canonical ordering used
+
+FAIL otherwise.
+
+### CHK.C10.SELECTED_SIGNS.CERTIFIED
+PASS if:
+- `inverse_sign_source.kind == "INVERSE_POSITIVITY_CERT"`
+- Task 9 cert indicates entrywise nonnegative, AND
+- every selected entry is labeled `sign="+"` with `source="INVERSE_POSITIVITY_CERT"`
+
+FAIL otherwise.
