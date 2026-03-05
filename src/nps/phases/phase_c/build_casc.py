@@ -165,11 +165,12 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     except Exception as e:  # noqa: BLE001
         inv_payload = {"error": str(e)}
 
-    # Exposure–response: v0 has no explicit theta; record as not applicable.
+    # Exposure–response: required for READY_FOR_PHASE_D.
+    # RealPhiV0 v0 has no explicit theta; record as not computed.
     exposure_payload: dict[str, Any] = {
         "computed": False,
         "reason": "RealPhiV0 v0 pipeline does not parameterize theta blocks in-object; no D_theta grad available.",
-        "status": "PASS",
+        "status": "FAIL (NOT COMPUTED)",
     }
 
     created_at = _utc_now()
@@ -185,6 +186,9 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     write_json(out_exposure, exposure_payload)
 
     # CAS-C
+    exposure_ok = bool(exposure_payload.get("computed") is True and exposure_payload.get("status") == "PASS")
+    cas_c_ok = bool(entry_ok and matrix_hyp_payload["status"] == "PASS" and exposure_ok)
+
     cas_c_payload: dict[str, Any] = {
         "cas_id": "CAS-C",
         "created_at": created_at,
@@ -203,7 +207,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         "matrix_hypothesis": matrix_hyp_payload,
         "inverse_sign_structure": {"path": out_inv.name},
         "exposure_response": {"path": out_exposure.name, "status": exposure_payload.get("status")},
-        "status": "APPROVED" if (entry_ok and matrix_hyp_payload["status"] == "PASS") else "BLOCKED",
+        "status": "APPROVED" if cas_c_ok else "BLOCKED",
     }
     cas_c_payload["content_hash"] = compute_content_hash(cas_c_payload)
 
