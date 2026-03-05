@@ -100,6 +100,13 @@ def _task6_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task7_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("ok") is not True:
+            return False
+    return True
+
+
 def _phase_c_entry_approved(path: Path) -> bool:
     lines = path.read_text(encoding="utf-8").strip().splitlines()
     return bool(lines) and lines[-1].strip() == "Phase C Entry Gate: APPROVED"
@@ -940,6 +947,221 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # ---------------------------------------------------------------------
+    # Taskpack 7 (Comparison inequalities / Z-matrix certification)
+    # Artefact-only; must not modify Phase C gating semantics.
+    # ---------------------------------------------------------------------
+    out_cmp = run_dir / "COMPARISON_INEQUALITIES_CERT.json"
+
+    required_paths = {
+        "HESSIAN_BLOCKS": out_blocks,
+        "DIAGONAL_DOMINANCE": out_ddom,
+    }
+    optional_paths = {
+        "HESSIAN_SPARSITY": out_sparsity,
+        "OPERATOR_LAYER": out_operator_layer,
+        "HESSIAN_MATRIX": out_hessian,
+    }
+
+    inputs_found: list[str] = []
+    inputs_missing: list[str] = []
+    for k, p in required_paths.items():
+        if p.exists():
+            inputs_found.append(k)
+        else:
+            inputs_missing.append(k)
+    for k, p in optional_paths.items():
+        if p.exists():
+            inputs_found.append(k)
+
+    tol_offdiag = 1e-12
+
+    matrix_definition7: dict[str, Any] = {
+        "base_matrix": "H",
+        "coupling_matrix": "C := -H",
+        "block": "w_w",
+    }
+
+    derived_from_task6: dict[str, Any] = {}
+    task6_strict_dd_pass = False
+
+    z_ok = False
+    max_offdiag_value = float("nan")
+    violations: list[dict[str, Any]] = []
+
+    # Try to parse inputs. If missing, emit FAIL artefacts without raising.
+    inputs_parse_ok = True
+    Hww7: np.ndarray | None = None
+    if inputs_missing:
+        inputs_parse_ok = False
+    else:
+        try:
+            blocks_json7 = _read_json(out_blocks)
+            blocks7 = blocks_json7.get("blocks") if isinstance(blocks_json7.get("blocks"), dict) else {}
+            Hww_raw7 = blocks7.get("w_w")
+            Hww7 = np.asarray(Hww_raw7, dtype=float)
+            if Hww7.ndim != 2 or Hww7.shape[0] != Hww7.shape[1]:
+                inputs_parse_ok = False
+        except Exception:  # noqa: BLE001
+            inputs_parse_ok = False
+
+        try:
+            ddom_json7 = _read_json(out_ddom)
+            if isinstance(ddom_json7.get("matrix_definition"), dict):
+                matrix_definition7 = dict(ddom_json7.get("matrix_definition"))
+            if isinstance(ddom_json7.get("derived_sign_pattern"), dict):
+                derived_from_task6 = dict(ddom_json7.get("derived_sign_pattern"))
+            checks6 = ddom_json7.get("checks") if isinstance(ddom_json7.get("checks"), list) else []
+            for chk in checks6:
+                if not isinstance(chk, dict):
+                    continue
+                if chk.get("id") == "CHK.C6.DOMINANCE.STRICT_PASS":
+                    task6_strict_dd_pass = bool(chk.get("ok") is True)
+                    break
+        except Exception:  # noqa: BLE001
+            inputs_parse_ok = False
+
+    if inputs_parse_ok and Hww7 is not None:
+        C7 = -Hww7
+        n7 = int(C7.shape[0])
+        max_val = -float("inf")
+        for i in range(n7):
+            for j in range(n7):
+                if i == j:
+                    continue
+                v = float(C7[i, j])
+                if v > max_val:
+                    max_val = v
+                if v > tol_offdiag:
+                    violations.append({"i": int(i), "j": int(j), "value": v})
+        max_offdiag_value = float(max_val) if n7 > 0 else 0.0
+        violations_sorted = sorted(violations, key=lambda x: float(x["value"]), reverse=True)
+        top_k_violations = violations_sorted[:10]
+        z_ok = bool(max_offdiag_value <= tol_offdiag)
+    else:
+        top_k_violations = []
+
+    candidate_z_matrix = bool(z_ok)
+    candidate_m_matrix = bool(candidate_z_matrix and task6_strict_dd_pass)
+
+    task7_checks: list[dict[str, Any]] = []
+    task7_checks.append(
+        _mk_check(
+            id="CHK.C7.INPUTS.PRESENT",
+            ok=bool(inputs_parse_ok),
+            details={
+                "inputs_found": sorted(inputs_found),
+                "inputs_missing": sorted(inputs_missing),
+            },
+        )
+    )
+    task7_checks.append(
+        _mk_check(
+            id="CHK.C7.ZMATRIX.OFFDIAG_NONPOSITIVE",
+            ok=bool(inputs_parse_ok and z_ok),
+            details={
+                "tolerance": tol_offdiag,
+                "max_offdiag_value": max_offdiag_value,
+                "violation_count": int(len(violations)),
+                "top_k_violations": top_k_violations,
+            },
+        )
+    )
+    task7_checks.append(
+        _mk_check(
+            id="CHK.C7.M_MATRIX.CANDIDATE",
+            ok=bool(inputs_parse_ok and candidate_m_matrix),
+            details={
+                "task6_strict_dd_pass": task6_strict_dd_pass,
+                "candidate_Z_matrix": candidate_z_matrix,
+                "candidate_m_matrix": candidate_m_matrix,
+            },
+        )
+    )
+
+    task7_ok = _task7_all_required_pass(task7_checks)
+    cmp_payload: dict[str, Any] = {
+        "schema_version": "C-TASK07.v2",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            **{k: str(p) for k, p in required_paths.items() if p.exists()},
+            **{k: str(p) for k, p in optional_paths.items() if p.exists()},
+        },
+        "matrix_definition": matrix_definition7,
+        "tolerances": {"offdiag_nonpositive": tol_offdiag},
+        "derived_sign_pattern": {
+            "computed": {
+                "off_diagonal_nonpositive": bool(z_ok),
+                "candidate_Z_matrix": bool(candidate_z_matrix),
+                "candidate_m_matrix": bool(candidate_m_matrix),
+            },
+            "from_task6": derived_from_task6,
+        },
+        "witnesses": {
+            "max_offdiag_value": max_offdiag_value,
+            "top_k_violations": top_k_violations,
+        },
+        "checks": task7_checks,
+        "status": "PASS" if task7_ok else "FAIL",
+    }
+
+    write_json(out_cmp, cmp_payload)
+
+    out_task7_report = run_dir / "PhaseC_TASK7_COMPARISON_INEQUALITIES_REPORT.md"
+    out_task7_report.write_text(
+        "\n".join(
+            [
+                "# Phase C — Task 7 Report — Comparison Inequalities",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Date (UTC): {created_at}",
+                "Generated by: nps.phases.phase_c.build_casc (Taskpack 7 step)",
+                "",
+                "Artifacts written (run root):",
+                f"- COMPARISON_INEQUALITIES_CERT.json: {out_cmp.name}",
+                f"- PhaseC_TASK7_COMPARISON_INEQUALITIES_REPORT.md: {out_task7_report.name}",
+                "",
+                "---",
+                "",
+                "## Inputs",
+                "",
+                f"- inputs_found: {', '.join(sorted(inputs_found))}",
+                f"- inputs_missing: {', '.join(sorted(inputs_missing))}",
+                "",
+                "## Matrix definition",
+                "",
+                json.dumps(matrix_definition7, sort_keys=True),
+                "",
+                "## Z-matrix sign condition",
+                "",
+                f"- tolerance: {tol_offdiag}",
+                f"- max_offdiag_value: {max_offdiag_value}",
+                f"- violation_count: {len(violations)}",
+                "",
+                "## Derived sign pattern",
+                "",
+                f"- off_diagonal_nonpositive: {bool(z_ok)}",
+                f"- candidate_Z_matrix: {candidate_z_matrix}",
+                f"- candidate_m_matrix: {candidate_m_matrix}",
+                f"- task6_strict_dd_pass: {task6_strict_dd_pass}",
+                "",
+                "## Checks",
+                "",
+                "| Check | Status |",
+                "|---|---|",
+                *[f"| {chk['id']} | {chk.get('status','FAIL')} |" for chk in task7_checks],
+                "",
+                "## Result",
+                "",
+                "DONE" if task7_ok else "BLOCKED",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -1119,6 +1341,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_task5_report,
         out_ddom,
         out_task6_report,
+        out_cmp,
+        out_task7_report,
         out_inv,
         out_exposure,
     ]
