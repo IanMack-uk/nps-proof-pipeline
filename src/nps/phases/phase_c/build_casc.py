@@ -123,6 +123,13 @@ def _task10_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task11_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("status") != "PASS":
+            return False
+    return True
+
+
 def _task6_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     for chk in checks:
         if chk.get("ok") is not True:
@@ -2179,6 +2186,363 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 11: EXPOSURE–RESPONSE COMPATIBILITY ===
+    # Taskpack 11 is the Phase C -> Phase D interface: it must run after Taskpacks 2/8/9/10.
+    out_resp_sign = run_dir / "RESPONSE_SIGN_PREDICTIONS.json"
+    out_scaling = run_dir / "SCALING_BOUNDS.json"
+    out_task11_report = run_dir / "PhaseC_TASK11_EXPOSURE_RESPONSE_COMPATIBILITY_REPORT.md"
+
+    hwtheta_path11 = out_hwtheta
+    inv_pos_path11 = out_inv_pos
+    sel_inv_path11 = out_sel_inv
+    theta_family_path11 = out_theta_family
+
+    neumann_bound_path11 = run_dir / "NEUMANN_SERIES_BOUND.json"
+    neumann_path11 = neumann_bound_path11 if neumann_bound_path11.exists() else out_neumann
+
+    required_paths11 = {
+        "H_WTHETA": hwtheta_path11,
+        "THETA_FAMILY": theta_family_path11,
+        "NEUMANN_SERIES": neumann_path11,
+        "INVERSE_POSITIVITY": inv_pos_path11,
+        "SELECTED_INVERSE_ENTRIES": sel_inv_path11,
+    }
+    missing11 = [k for k, p in required_paths11.items() if not p.exists()]
+    if missing11:
+        raise RuntimeError(f"Task 11: missing required inputs: {', '.join(sorted(missing11))}")
+
+    hwtheta_json11 = _read_json(hwtheta_path11)
+    theta_family_json11 = _read_json(theta_family_path11)
+    neumann_json11 = _read_json(neumann_path11)
+    invpos_json11 = _read_json(inv_pos_path11)
+    selinv_json11 = _read_json(sel_inv_path11)
+
+    # ---- CHK.C11.H_WTHETA.EXISTS
+    hwtheta_data11 = hwtheta_json11.get("data")
+    hwtheta_shape11 = hwtheta_json11.get("shape")
+    hwtheta_ok11 = (
+        isinstance(hwtheta_shape11, list)
+        and len(hwtheta_shape11) == 2
+        and all(isinstance(x, int) for x in hwtheta_shape11)
+        and isinstance(hwtheta_data11, list)
+    )
+
+    H_wtheta11: np.ndarray | None = None
+    try:
+        if isinstance(hwtheta_data11, list):
+            H_wtheta11 = np.asarray(hwtheta_data11, dtype=float)
+            if H_wtheta11.ndim != 2:
+                H_wtheta11 = None
+                hwtheta_ok11 = False
+    except Exception:  # noqa: BLE001
+        H_wtheta11 = None
+        hwtheta_ok11 = False
+
+    # ---- CHK.C11.H_WTHETA.SIGN_STRUCTURE_CERTIFIED
+    sp11 = hwtheta_json11.get("sign_pattern") if isinstance(hwtheta_json11.get("sign_pattern"), dict) else {}
+    sp_constraint11 = sp11.get("constraint")
+    sp_tol11 = sp11.get("tolerance")
+    sp_viol11 = sp11.get("violations")
+    sp_fields_present11 = (
+        isinstance(sp_constraint11, str)
+        and isinstance(sp_tol11, (int, float))
+        and isinstance(sp_viol11, int)
+    )
+    sp_constraint_ok11 = sp_constraint11 in ("nonnegative", "nonpositive", "mixed")
+    sp_viol_ok11 = True
+    if sp_constraint11 in ("nonnegative", "nonpositive"):
+        sp_viol_ok11 = bool(sp_viol11 == 0)
+    sign_structure_ok11 = bool(sp_fields_present11 and sp_constraint_ok11 and sp_viol_ok11)
+
+    # ---- Evidence of inv(H) >= 0 (Task 9)
+    inv_concl11 = (
+        invpos_json11.get("inverse_sign_conclusion")
+        if isinstance(invpos_json11.get("inverse_sign_conclusion"), dict)
+        else {}
+    )
+    inv_entrywise_nonneg11 = (
+        inv_concl11.get("inverse_entrywise_nonnegative")
+        if isinstance(inv_concl11.get("inverse_entrywise_nonnegative"), bool)
+        else False
+    )
+
+    # ---- Selection from Task 10
+    sel_selected11: dict[str, Any] = {}
+    sel_obj11 = selinv_json11.get("selection") if isinstance(selinv_json11.get("selection"), dict) else {}
+    if isinstance(sel_obj11.get("selected"), dict):
+        sel_selected11 = dict(sel_obj11.get("selected"))
+    sel_pairs11 = sel_selected11.get("pairs") if isinstance(sel_selected11.get("pairs"), list) else []
+    pairs11: list[tuple[int, int]] = []
+    for p in sel_pairs11:
+        if isinstance(p, list) and len(p) == 2 and all(isinstance(x, int) for x in p):
+            pairs11.append((int(p[0]), int(p[1])))
+
+    # ---- CHK.C11.RESPONSE.SIGN_UNAMBIGUOUS + RESPONSE_SIGN_PREDICTIONS.json
+    tol_pred11 = 1e-12
+    dim_w11 = int(hwtheta_shape11[0]) if isinstance(hwtheta_shape11, list) and len(hwtheta_shape11) == 2 else 0
+    dim_theta11 = int(hwtheta_shape11[1]) if isinstance(hwtheta_shape11, list) and len(hwtheta_shape11) == 2 else 0
+
+    response_sign_matrix11 = np.zeros((dim_w11, dim_theta11), dtype=int)
+    sign_ambiguities11: list[dict[str, Any]] = []
+    selected_entries_summary11: list[dict[str, Any]] = []
+
+    determinate_rule_used11 = ""
+    if inv_entrywise_nonneg11 and sp_constraint11 == "nonnegative":
+        response_sign_matrix11[:, :] = -1
+        determinate_rule_used11 = "inv(H) >= 0 and H_wtheta constraint=nonnegative => dw/dtheta <= 0"
+    elif inv_entrywise_nonneg11 and sp_constraint11 == "nonpositive":
+        response_sign_matrix11[:, :] = 1
+        determinate_rule_used11 = "inv(H) >= 0 and H_wtheta constraint=nonpositive => dw/dtheta >= 0"
+    else:
+        determinate_rule_used11 = "indeterminate (insufficient certified sign constraints)"
+
+    for i, j in pairs11:
+        pred = 0
+        reason = ""
+        if inv_entrywise_nonneg11 and sp_constraint11 == "nonnegative":
+            pred = -1
+            reason = "concluded dw/dtheta <= 0"
+        elif inv_entrywise_nonneg11 and sp_constraint11 == "nonpositive":
+            pred = 1
+            reason = "concluded dw/dtheta >= 0"
+        else:
+            pred = 0
+            reason = "indeterminate"
+            sign_ambiguities11.append({"i": int(i), "j": int(j), "reason": reason})
+        selected_entries_summary11.append({"i": int(i), "j": int(j), "predicted_sign": int(pred)})
+
+    sign_determinate11 = bool(len(sign_ambiguities11) == 0)
+    response_sign_ok11 = bool(
+        sign_determinate11 and inv_entrywise_nonneg11 and sp_constraint11 in ("nonnegative", "nonpositive")
+    )
+
+    response_sign_payload11: dict[str, Any] = {
+        "schema_version": "C-RESPONSE-SIGN-PREDICTIONS.v1",
+        "run_id": run_dir.name,
+        "taskpack_id": "C-TASK11.v1",
+        "inputs": {
+            "h_wtheta_path": f"cert_artifacts/{run_dir.name}/{hwtheta_path11.name}",
+            "m_matrix_cert_path": f"cert_artifacts/{run_dir.name}/{out_m_matrix.name}",
+            "selected_inverse_entries_path": f"cert_artifacts/{run_dir.name}/{sel_inv_path11.name}",
+        },
+        "assumptions_used": [
+            "INV_H_ENTRYWISE_NONNEGATIVE (from Task 9)",
+            "H_WTHETA_SIGN_PATTERN (from Task 2)",
+        ],
+        "tolerance": tol_pred11,
+        "prediction_rule": {
+            "description": "Sign-only inference using inv(H) >= 0 and H_wtheta sign constraint.",
+            "formula": "dw_star_dtheta = - inv(H) @ H_wtheta",
+            "rule_used": determinate_rule_used11,
+        },
+        "response_sign_matrix": {
+            "shape": [dim_w11, dim_theta11],
+            "encoding": "int",
+            "legend": {"-1": "negative", "0": "zero_or_indeterminate", "1": "positive"},
+            "matrix": [[int(x) for x in row] for row in response_sign_matrix11.tolist()],
+        },
+        "sign_determinate": sign_determinate11,
+        "sign_ambiguities": sign_ambiguities11,
+        "selected_entries_summary": {
+            "from_task10_selection": True,
+            "entries": selected_entries_summary11,
+        },
+        "checks": [
+            {
+                "check_id": "CHK.C11.RESPONSE.SIGN_UNAMBIGUOUS",
+                "status": "PASS" if response_sign_ok11 else "FAIL",
+                "details": {"reason": determinate_rule_used11},
+            }
+        ],
+        "created_at_utc": created_at,
+    }
+    write_json(out_resp_sign, response_sign_payload11)
+
+    # ---- CHK.C11.SCALING.BOUNDS_COMPUTED + SCALING_BOUNDS.json
+    rho_bound11 = float("nan")
+    try:
+        nb = neumann_json11.get("neumann_bound") if isinstance(neumann_json11.get("neumann_bound"), dict) else {}
+        if isinstance(nb.get("rho_bound"), (int, float)):
+            rho_bound11 = float(nb.get("rho_bound"))
+    except Exception:  # noqa: BLE001
+        rho_bound11 = float("nan")
+
+    inv_norm_bound11 = float("nan")
+    if np.isfinite(rho_bound11) and rho_bound11 < 1.0:
+        inv_norm_bound11 = float(1.0 / (1.0 - rho_bound11))
+
+    h_wtheta_norm11 = float("nan")
+    if H_wtheta11 is not None:
+        h_wtheta_norm11 = float(np.max(np.sum(np.abs(H_wtheta11), axis=1))) if H_wtheta11.size else 0.0
+
+    response_norm_bound11 = float("nan")
+    if np.isfinite(inv_norm_bound11) and np.isfinite(h_wtheta_norm11):
+        response_norm_bound11 = float(inv_norm_bound11 * h_wtheta_norm11)
+
+    scaling_finite11 = bool(
+        np.isfinite(rho_bound11) and np.isfinite(inv_norm_bound11) and np.isfinite(response_norm_bound11)
+    )
+    scaling_ok11 = bool(scaling_finite11 and rho_bound11 < 1.0)
+
+    scaling_payload11: dict[str, Any] = {
+        "schema_version": "C-SCALING-BOUNDS.v1",
+        "run_id": run_dir.name,
+        "taskpack_id": "C-TASK11.v1",
+        "inputs": {
+            "neumann_bound_path": f"cert_artifacts/{run_dir.name}/{neumann_path11.name}",
+            "h_wtheta_path": f"cert_artifacts/{run_dir.name}/{hwtheta_path11.name}",
+        },
+        "rho_bound": rho_bound11,
+        "inverse_norm_bound": {
+            "norm": "inf",
+            "bound": inv_norm_bound11,
+            "derivation": "Computed as 1/(1-rho_bound) from Task 8 rho_bound.",
+        },
+        "h_wtheta_norm": {"norm": "inf", "value": h_wtheta_norm11, "notes": "Computed from H_wtheta entries."},
+        "response_norm_bound": {
+            "norm": "inf",
+            "bound": response_norm_bound11,
+            "formula": "||dw/dtheta|| <= inverse_norm_bound * ||H_wtheta||",
+        },
+        "finite": scaling_finite11,
+        "checks": [
+            {
+                "check_id": "CHK.C11.SCALING.BOUNDS_COMPUTED",
+                "status": "PASS" if scaling_ok11 else "FAIL",
+                "details": {"rho_bound": rho_bound11, "finite": scaling_finite11},
+            }
+        ],
+        "created_at_utc": created_at,
+    }
+    write_json(out_scaling, scaling_payload11)
+
+    # ---- EXPOSURE_RESPONSE_CHECK.json (also drives CAS-C gating)
+    well_posed_shape_compat11 = bool(dim_w11 > 0 and dim_theta11 > 0 and H_wtheta11 is not None)
+    response_defined11 = bool(well_posed_shape_compat11 and inv_entrywise_nonneg11)
+
+    task11_checks: list[dict[str, Any]] = []
+    task11_checks.append(
+        {
+            "check_id": "CHK.C11.H_WTHETA.EXISTS",
+            "status": "PASS" if hwtheta_ok11 else "FAIL",
+            "details": {"path": hwtheta_path11.name, "shape": hwtheta_shape11},
+        }
+    )
+    task11_checks.append(
+        {
+            "check_id": "CHK.C11.H_WTHETA.SIGN_STRUCTURE_CERTIFIED",
+            "status": "PASS" if sign_structure_ok11 else "FAIL",
+            "details": {
+                "constraint": sp_constraint11,
+                "tolerance": sp_tol11,
+                "violations": sp_viol11,
+                "consistent": sign_structure_ok11,
+            },
+        }
+    )
+    task11_checks.append(
+        {
+            "check_id": "CHK.C11.RESPONSE.SIGN_UNAMBIGUOUS",
+            "status": "PASS" if response_sign_ok11 else "FAIL",
+            "details": {"determinate": sign_determinate11, "ambiguities": len(sign_ambiguities11)},
+        }
+    )
+    task11_checks.append(
+        {
+            "check_id": "CHK.C11.SCALING.BOUNDS_COMPUTED",
+            "status": "PASS" if scaling_ok11 else "FAIL",
+            "details": {"rho_bound": rho_bound11, "finite": scaling_finite11},
+        }
+    )
+
+    task11_ok = _task11_all_required_pass(task11_checks)
+    theta_family_id11 = (
+        theta_family_json11.get("theta_family_id") if isinstance(theta_family_json11.get("theta_family_id"), str) else ""
+    )
+
+    exposure_payload = {
+        "schema_version": "C-EXPOSURE-RESPONSE-CHECK.v1",
+        "run_id": run_dir.name,
+        "taskpack_id": "C-TASK11.v1",
+        "computed": True,
+        "inputs": {
+            "h_wtheta_path": f"cert_artifacts/{run_dir.name}/{hwtheta_path11.name}",
+            "hessian_path": f"cert_artifacts/{run_dir.name}/{out_hessian.name}" if out_hessian.exists() else "",
+            "m_matrix_cert_path": f"cert_artifacts/{run_dir.name}/{out_m_matrix.name}",
+            "selected_inverse_entries_path": f"cert_artifacts/{run_dir.name}/{sel_inv_path11.name}",
+            "neumann_bound_path": f"cert_artifacts/{run_dir.name}/{neumann_path11.name}",
+        },
+        "theta_family": {
+            "name": theta_family_id11,
+            "scope": "pointwise_at_w_star",
+            "dimension_w": dim_w11,
+            "dimension_theta": dim_theta11,
+        },
+        "response_identity": {
+            "formula": "dw_star_dtheta = - inv(H) @ H_wtheta",
+            "sign_convention": {
+                "certified_objective": certified_objective,
+                "notes": "H is Hessian of the certified objective. H_wtheta from Task 2.",
+            },
+        },
+        "well_posedness": {
+            "h_shape": [int(H.shape[0]), int(H.shape[1])],
+            "h_wtheta_shape": [dim_w11, dim_theta11],
+            "shape_compatible": well_posed_shape_compat11,
+            "invertibility_basis": "M-matrix certificate (Task 9)",
+            "response_defined": response_defined11,
+        },
+        "checks": task11_checks,
+        "status": "PASS" if task11_ok else "FAIL",
+        "created_at_utc": created_at,
+    }
+    write_json(out_exposure, exposure_payload)
+
+    out_task11_report.write_text(
+        "\n".join(
+            [
+                "# Phase C — Task 11 Report — Exposure–Response Compatibility",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Generated (UTC): {created_at}",
+                "",
+                "## Inputs (run root)",
+                f"- THETA_FAMILY.json: {theta_family_path11.name}",
+                f"- H_WTHETA.json: {hwtheta_path11.name}",
+                f"- Neumann-series artefact: {neumann_path11.name}",
+                f"- INVERSE_POSITIVITY_CERT.json: {inv_pos_path11.name}",
+                f"- SELECTED_INVERSE_ENTRIES.json: {sel_inv_path11.name}",
+                "",
+                "## H_wtheta sign pattern",
+                f"- constraint: {sp_constraint11}",
+                f"- tolerance: {sp_tol11}",
+                f"- violations: {sp_viol11}",
+                "",
+                "## Response sign predictions",
+                f"- determinate: {sign_determinate11}",
+                f"- selected entries: {len(pairs11)}",
+                "",
+                "## Scaling bounds",
+                f"- rho_bound: {rho_bound11}",
+                f"- inverse_norm_bound_inf: {inv_norm_bound11}",
+                f"- ||H_wtheta||_inf: {h_wtheta_norm11}",
+                f"- response_norm_bound_inf: {response_norm_bound11}",
+                "",
+                "## Checks",
+                "",
+                "| check_id | status |",
+                "|---|---|",
+                *[f"| {c['check_id']} | {c['status']} |" for c in task11_checks],
+                "",
+                f"TASK11_STATUS: {'PASS' if task11_ok else 'FAIL'}",
+                f"READY_FOR_PHASE_D: {'YES' if task11_ok else 'NO'}",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -2370,6 +2734,9 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_task9_report,
         out_sel_inv,
         out_task10_report,
+        out_resp_sign,
+        out_scaling,
+        out_task11_report,
         out_inv,
         out_exposure,
     ]
