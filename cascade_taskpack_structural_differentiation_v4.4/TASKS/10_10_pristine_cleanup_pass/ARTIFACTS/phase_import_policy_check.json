@@ -1,0 +1,19 @@
+{
+  "phase_order": [
+    "phase_0a",
+    "phase_0b",
+    "phase_0c",
+    "phase_0d",
+    "phase_a",
+    "phase_a_prime",
+    "phase_b",
+    "phase_b_prime",
+    "phase_c",
+    "phase_c_prime",
+    "phase_d",
+    "phase_d_prime",
+    "phase_f"
+  ],
+  "policy": "phase_order_nonforward_imports",
+  "violations": []
+}

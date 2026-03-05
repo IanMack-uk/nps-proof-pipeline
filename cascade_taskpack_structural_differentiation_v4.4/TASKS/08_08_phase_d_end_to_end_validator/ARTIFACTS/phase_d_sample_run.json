@@ -1,0 +1,23 @@
+{
+  "genericity": {
+    "certified": false,
+    "witness": "Genericity certification not implemented in Task 08"
+  },
+  "monotonicity": {
+    "certified": true,
+    "nondecreasing": true,
+    "observable_label": "w_star[0]",
+    "parameter_label": "theta",
+    "target_mode": "AGGREGATE_DIRECTIONAL",
+    "tolerance": 0.0,
+    "witness": null
+  },
+  "stability": {
+    "certified": false,
+    "witness": "Stability certification not implemented in Task 08"
+  },
+  "strict_ordering": {
+    "certified": false,
+    "witness": "Strict ordering not requested"
+  }
+}

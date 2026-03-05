@@ -1,0 +1,54 @@
+{
+  "schema_version": "1",
+  "theorem_id": "THM.SDOT.v4",
+  "lemmas": [
+    {
+      "lemma_id": "LEMMA.PHASE_B.BRANCH_EXISTENCE",
+      "requires_assumption_ids": [
+        "CAS-0B.IFT.C1_G",
+        "CAS-0B.IFT.INVERTIBLE_DWG",
+        "CAS-B.REGIME.INTERIOR"
+      ],
+      "inputs": [
+        "G(w,theta)",
+        "(w*,theta0)"
+      ],
+      "outputs": [
+        "local equilibrium branch w*(theta)"
+      ]
+    },
+    {
+      "lemma_id": "LEMMA.PHASE_C.NON_SPECTRAL_INVERSE_BOUNDS",
+      "requires_assumption_ids": [
+        "CAS-0C.DD.INVERSE_BOUNDS.NON_SPECTRAL",
+        "CAS-0C.NORM.NEUMANN_SERIES.INVERSION",
+        "CAS-C.DD.BLOCK_DOMINANCE.NON_SPECTRAL"
+      ],
+      "inputs": [
+        "Hessian blocks",
+        "dominance margins"
+      ],
+      "outputs": [
+        "inverse norm bound certificates"
+      ]
+    },
+    {
+      "lemma_id": "LEMMA.PHASE_D.AGGREGATE_MONOTONE_RESPONSE",
+      "requires_assumption_ids": [
+        "CAS-0D.ORDERING.GOAL.MONOTONE_RESPONSE.LOCAL",
+        "CAS-0D.COMPARISON.INEQUALITIES.BASIC",
+        "CAS-0D.DTHETA_G.SIGN_STRUCTURE.INPUT",
+        "CAS-0D.INVERSE.BOUNDS.SUFFICIENT_FOR_MONOTONICITY",
+        "CAS-C.SCALING.EXPOSURE_TO_CURVATURE"
+      ],
+      "inputs": [
+        "Phase B branch identity",
+        "Phase C inverse bounds",
+        "ordering target"
+      ],
+      "outputs": [
+        "directional monotonicity certificate"
+      ]
+    }
+  ]
+}

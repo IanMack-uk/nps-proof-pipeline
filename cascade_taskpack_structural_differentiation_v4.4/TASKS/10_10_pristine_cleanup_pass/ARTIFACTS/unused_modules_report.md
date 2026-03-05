@@ -1,0 +1,891 @@
+# Unused Modules / Dead Code Report (Heuristic)
+
+This report is conservative and intended to support Stage 2 planning. Results require human review.
+
+## Modules never imported by other src modules
+
+- `module`: `nps.audit.import_graph`
+  - `path`: `src/nps/audit/import_graph.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.certification.drop_test`
+  - `path`: `src/nps/certification/drop_test.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.models.toy.comparative_statics`
+  - `path`: `src/nps/models/toy/comparative_statics.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.models.toy.equilibrium`
+  - `path`: `src/nps/models/toy/equilibrium.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.models.toy.finite_diff`
+  - `path`: `src/nps/models/toy/finite_diff.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.models.toy.optimality`
+  - `path`: `src/nps/models/toy/optimality.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.models.toy.potentials_sparse`
+  - `path`: `src/nps/models/toy/potentials_sparse.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phase_d.entry_gate`
+  - `path`: `src/nps/phase_d/entry_gate.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phase_d.validators`
+  - `path`: `src/nps/phase_d/validators.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_0a.approve_cas0a`
+  - `path`: `src/nps/phases/phase_0a/approve_cas0a.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_0b.approve_cas0b`
+  - `path`: `src/nps/phases/phase_0b/approve_cas0b.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_0c.approve_cas0c`
+  - `path`: `src/nps/phases/phase_0c/approve_cas0c.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_0d.cas0d_artifact_emission`
+  - `path`: `src/nps/phases/phase_0d/cas0d_artifact_emission.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.build_casa`
+  - `path`: `src/nps/phases/phase_a/build_casa.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.closure_report`
+  - `path`: `src/nps/phases/phase_a/closure_report.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.coordinates.coordinate_candidates`
+  - `path`: `src/nps/phases/phase_a/coordinates/coordinate_candidates.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.coordinates.coordinate_paper0_candidates`
+  - `path`: `src/nps/phases/phase_a/coordinates/coordinate_paper0_candidates.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.coordinates.coordinate_paper0_validation`
+  - `path`: `src/nps/phases/phase_a/coordinates/coordinate_paper0_validation.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.exposure.exposure_candidates`
+  - `path`: `src/nps/phases/phase_a/exposure/exposure_candidates.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.exposure.exposure_validation`
+  - `path`: `src/nps/phases/phase_a/exposure/exposure_validation.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.notation_snapshot`
+  - `path`: `src/nps/phases/phase_a/notation_snapshot.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.phase_a_entry_gate`
+  - `path`: `src/nps/phases/phase_a/phase_a_entry_gate.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.seed_exposure_validation`
+  - `path`: `src/nps/phases/phase_a/seed_exposure_validation.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.seed_phase_a_all`
+  - `path`: `src/nps/phases/phase_a/seed_phase_a_all.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a.validation_seed`
+  - `path`: `src/nps/phases/phase_a/validation_seed.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_a_prime.closure`
+  - `path`: `src/nps/phases/phase_a_prime/closure.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_b.entry_gate`
+  - `path`: `src/nps/phases/phase_b/entry_gate.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_b_prime.closure_report`
+  - `path`: `src/nps/phases/phase_b_prime/closure_report.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_c.approve_casc`
+  - `path`: `src/nps/phases/phase_c/approve_casc.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_c.entry_gate`
+  - `path`: `src/nps/phases/phase_c/entry_gate.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_c_prime.closure_report`
+  - `path`: `src/nps/phases/phase_c_prime/closure_report.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_d.end_to_end_validator`
+  - `path`: `src/nps/phases/phase_d/end_to_end_validator.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.phases.phase_f.proof_assembler`
+  - `path`: `src/nps/phases/phase_f/proof_assembler.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.symbols.objects.equilibrium_edge_weight`
+  - `path`: `src/nps/symbols/objects/equilibrium_edge_weight.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.symbols.objects.relational_potential`
+  - `path`: `src/nps/symbols/objects/relational_potential.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+- `module`: `nps.symbols.objects.structural_exposure`
+  - `path`: `src/nps/symbols/objects/structural_exposure.py`
+  - `mark`: `needs_review`
+  - `notes`: No importing module found in src import scan.
+
+## Top-level functions with no external textual call sites (rough)
+
+- `function`: `expect_failure_on_drop`
+  - `module_or_file`: `nps.certification.drop_test`
+  - `mark`: `needs_review`
+- `function`: `phi_sparse`
+  - `module_or_file`: `nps.models.toy.potentials_sparse`
+  - `mark`: `needs_review`
+- `function`: `block_shapes`
+  - `module_or_file`: `nps.phase_c.hessian_blocks`
+  - `mark`: `needs_review`
+- `function`: `iter_partition_indices`
+  - `module_or_file`: `nps.phase_c.structural_coordinates`
+  - `mark`: `needs_review`
+- `function`: `approve_and_freeze_cas0a`
+  - `module_or_file`: `nps.phases.phase_0a.approve_cas0a`
+  - `mark`: `needs_review`
+- `function`: `build_registry`
+  - `module_or_file`: `nps.phases.phase_0a.build_cas0a`
+  - `mark`: `needs_review`
+- `function`: `cas0a_dependency_rows`
+  - `module_or_file`: `nps.phases.phase_0a.build_cas0a`
+  - `mark`: `needs_review`
+- `function`: `certify_cas0c_spectral_opt_in`
+  - `module_or_file`: `nps.phases.phase_0c.approve_cas0c`
+  - `mark`: `needs_review`
+- `function`: `certify_cas0d_spectral_opt_in`
+  - `module_or_file`: `nps.phases.phase_0d.approve_cas0d`
+  - `mark`: `needs_review`
+- `function`: `build_symbol_dictionary`
+  - `module_or_file`: `nps.phases.phase_a.build_casa`
+  - `mark`: `needs_review`
+- `function`: `assert_finite_vector`
+  - `module_or_file`: `nps.phases.phase_a.exposure.exposure_validation`
+  - `mark`: `needs_review`
+- `function`: `check_neighborhood_locality`
+  - `module_or_file`: `nps.phases.phase_a.exposure.exposure_validation`
+  - `mark`: `needs_review`
+- `function`: `seed_phase_a_validation_registry`
+  - `module_or_file`: `nps.phases.phase_a.validation_seed`
+  - `mark`: `needs_review`
+- `function`: `assert_phase_b_ready_for_computation`
+  - `module_or_file`: `nps.phases.phase_b.entry_gate`
+  - `mark`: `needs_review`
+- `function`: `write_certificates_json`
+  - `module_or_file`: `nps.phases.phase_b.instance_harness`
+  - `mark`: `needs_review`
+- `function`: `assert_phase_c_ready_for_computation`
+  - `module_or_file`: `nps.phases.phase_c.entry_gate`
+  - `mark`: `needs_review`
+- `function`: `certify_uniform_dominance_over_samples`
+  - `module_or_file`: `nps.phases.phase_c.nonspectral_inverse`
+  - `mark`: `needs_review`
+- `function`: `write_phase_c_inverse_certs_json`
+  - `module_or_file`: `nps.phases.phase_c.nonspectral_inverse`
+  - `mark`: `needs_review`
+- `function`: `write_phase_d_run_json`
+  - `module_or_file`: `nps.phases.phase_d.end_to_end_validator`
+  - `mark`: `needs_review`
+- `function`: `make_equilibrium_edge_weight`
+  - `module_or_file`: `nps.symbols.objects.equilibrium_edge_weight`
+  - `mark`: `needs_review`
+- `function`: `make_relational_potential`
+  - `module_or_file`: `nps.symbols.objects.relational_potential`
+  - `mark`: `needs_review`
+- `function`: `make_structural_exposure`
+  - `module_or_file`: `nps.symbols.objects.structural_exposure`
+  - `mark`: `needs_review`
+- `function`: `test_signed_weights_redteam_logs_monotonicity_ambiguity_without_failing`
+  - `module_or_file`: `tests/adversarial/test_signed_weights_redteam.py`
+  - `mark`: `needs_review`
+- `function`: `test_edge_indexing_deterministic`
+  - `module_or_file`: `tests/graph/test_edge_indexing.py`
+  - `mark`: `needs_review`
+- `function`: `test_isolated_edge_component_neighborhood`
+  - `module_or_file`: `tests/graph/test_fragility_boundaries.py`
+  - `mark`: `needs_review`
+- `function`: `test_line_ball_radius_zero_returns_self`
+  - `module_or_file`: `tests/graph/test_fragility_boundaries.py`
+  - `mark`: `needs_review`
+- `function`: `test_single_edge_graph_permutation_transport`
+  - `module_or_file`: `tests/graph/test_fragility_boundaries.py`
+  - `mark`: `needs_review`
+- `function`: `test_commutation_smoke_for_edge_image_indexing`
+  - `module_or_file`: `tests/graph/test_fragility_transport.py`
+  - `mark`: `needs_review`
+- `function`: `test_transport_edge_weights_rejects_shape_mismatch`
+  - `module_or_file`: `tests/graph/test_fragility_transport.py`
+  - `mark`: `needs_review`
+- `function`: `test_transport_rejects_wrong_target_graph_edges`
+  - `module_or_file`: `tests/graph/test_fragility_transport.py`
+  - `mark`: `needs_review`
+- `function`: `test_line_ball_path`
+  - `module_or_file`: `tests/graph/test_line_graph_neighborhoods.py`
+  - `mark`: `needs_review`
+- `function`: `test_line_ball_square`
+  - `module_or_file`: `tests/graph/test_line_graph_neighborhoods.py`
+  - `mark`: `needs_review`
+- `function`: `test_line_ball_triangle`
+  - `module_or_file`: `tests/graph/test_line_graph_neighborhoods.py`
+  - `mark`: `needs_review`
+- `function`: `test_relabelling_transports_weights`
+  - `module_or_file`: `tests/graph/test_relabelling_transport.py`
+  - `mark`: `needs_review`
+- `function`: `test_continuity_surrogate_in_interior_regime`
+  - `module_or_file`: `tests/models/test_comparative_statics.py`
+  - `mark`: `needs_review`
+- `function`: `test_kink_detection_or_active_set_nonempty_in_boundary_regime`
+  - `module_or_file`: `tests/models/test_comparative_statics.py`
+  - `mark`: `needs_review`
+- `function`: `test_sensitivity_central_shape_and_finite`
+  - `module_or_file`: `tests/models/test_comparative_statics.py`
+  - `mark`: `needs_review`
+- `function`: `test_equilibrium_within_bounds_and_high_value`
+  - `module_or_file`: `tests/models/test_equilibrium.py`
+  - `mark`: `needs_review`
+- `function`: `test_grad_phi_matches_finite_difference`
+  - `module_or_file`: `tests/models/test_gradients.py`
+  - `mark`: `needs_review`
+- `function`: `test_locality_invariance_outside_neighborhood`
+  - `module_or_file`: `tests/models/test_locality.py`
+  - `mark`: `needs_review`
+- `function`: `test_locality_negative_control_inside_neighborhood_changes`
+  - `module_or_file`: `tests/models/test_locality.py`
+  - `mark`: `needs_review`
+- `function`: `test_residual_decreases_during_iteration`
+  - `module_or_file`: `tests/models/test_projected_optimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_residual_small_at_equilibrium`
+  - `module_or_file`: `tests/models/test_projected_optimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_a_minimality_drop_test`
+  - `module_or_file`: `tests/phase_a/test_cas_a_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_seed_cas_a_assumptions_registers_all_provisional`
+  - `module_or_file`: `tests/phase_a/test_cas_a_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_closure_report_renderer_is_deterministic`
+  - `module_or_file`: `tests/phase_a/test_fragility_determinism.py`
+  - `mark`: `needs_review`
+- `function`: `test_compute_edge_neighborhoods_deterministic`
+  - `module_or_file`: `tests/phase_a/test_fragility_determinism.py`
+  - `mark`: `needs_review`
+- `function`: `test_symbol_snapshot_header_version_line_stable`
+  - `module_or_file`: `tests/phase_a/test_fragility_determinism.py`
+  - `mark`: `needs_review`
+- `function`: `test_default_sampling_policy_is_nonnegative`
+  - `module_or_file`: `tests/phase_a/test_fragility_domain_policy.py`
+  - `mark`: `needs_review`
+- `function`: `test_project_omega_defaults_to_nonnegative_policy`
+  - `module_or_file`: `tests/phase_a/test_fragility_domain_policy.py`
+  - `mark`: `needs_review`
+- `function`: `test_coordinate_contract_is_gated`
+  - `module_or_file`: `tests/phase_a/test_fragility_gating_completeness.py`
+  - `mark`: `needs_review`
+- `function`: `test_exposure_locality_checks_are_gated`
+  - `module_or_file`: `tests/phase_a/test_fragility_gating_completeness.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_graph_invariance_is_gated`
+  - `module_or_file`: `tests/phase_a/test_fragility_gating_completeness.py`
+  - `mark`: `needs_review`
+- `function`: `test_structural_exposure_evaluate_vector_is_gated`
+  - `module_or_file`: `tests/phase_a/test_fragility_gating_completeness.py`
+  - `mark`: `needs_review`
+- `function`: `test_coordinate_contract_requires_assumption_seeded`
+  - `module_or_file`: `tests/phase_a/test_fragility_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_exposure_locality_requires_assumption_seeded`
+  - `module_or_file`: `tests/phase_a/test_fragility_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_graph_invariance_requires_assumption_seeded`
+  - `module_or_file`: `tests/phase_a/test_fragility_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_monotonicity_requires_assumptions_seeded`
+  - `module_or_file`: `tests/phase_a/test_fragility_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_exposure_vector_shape_mismatch_raises`
+  - `module_or_file`: `tests/phase_a/test_fragility_vector_boundaries.py`
+  - `mark`: `needs_review`
+- `function`: `test_m_equals_one_exposure_vector_shape_and_finite`
+  - `module_or_file`: `tests/phase_a/test_fragility_vector_boundaries.py`
+  - `mark`: `needs_review`
+- `function`: `test_negative_control_raw_edge_index_breaks_invariance`
+  - `module_or_file`: `tests/phase_a/test_paper0_invariance_graph_canonical.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_graph_canonical_invariance`
+  - `module_or_file`: `tests/phase_a/test_paper0_invariance_graph_canonical.py`
+  - `mark`: `needs_review`
+- `function`: `test_evidence_logging_and_conjecture_registration`
+  - `module_or_file`: `tests/phase_a/test_paper0_structural_coordinates.py`
+  - `mark`: `needs_review`
+- `function`: `test_negative_control_noninvariant_detected`
+  - `module_or_file`: `tests/phase_a/test_paper0_structural_coordinates.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_automorphism_invariance_controls`
+  - `module_or_file`: `tests/phase_a/test_paper0_structural_coordinates.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_candidates_finite_and_local`
+  - `module_or_file`: `tests/phase_a/test_paper0_structural_coordinates.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper0_monotonicity_controls`
+  - `module_or_file`: `tests/phase_a/test_paper0_structural_coordinates.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_a_closure_report_doc_matches_renderer`
+  - `module_or_file`: `tests/phase_a/test_phase_a_closure_report_doc_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_entry_gate_fails_if_required_assumption_missing`
+  - `module_or_file`: `tests/phase_a/test_phase_a_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_a_entry_gate_positive`
+  - `module_or_file`: `tests/phase_a/test_phase_a_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_a_entry_gate_requires_frozen_symbols`
+  - `module_or_file`: `tests/phase_a/test_phase_a_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_a_entry_gate_requires_seeded_registry`
+  - `module_or_file`: `tests/phase_a/test_phase_a_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_seed_phase_a_all_registers_expected_ids`
+  - `module_or_file`: `tests/phase_a/test_phase_a_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_a_coherence_audit_passes_under_full_seed`
+  - `module_or_file`: `tests/phase_a/test_phase_a_strong_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_strong_minimality_missing_contract_blocks_phase_b_contract_check`
+  - `module_or_file`: `tests/phase_a/test_phase_a_strong_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_strong_minimality_missing_exp_locality_blocks_locality_check`
+  - `module_or_file`: `tests/phase_a/test_phase_a_strong_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_strong_minimality_missing_exp_wellposed_blocks_exposure_eval`
+  - `module_or_file`: `tests/phase_a/test_phase_a_strong_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_coordinate_contract_evidence_logging`
+  - `module_or_file`: `tests/phase_a/test_structural_coordinates_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_coordinates_well_posedness`
+  - `module_or_file`: `tests/phase_a/test_structural_coordinates_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_contract_negative_control_detected`
+  - `module_or_file`: `tests/phase_a/test_structural_coordinates_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_contract_positive_control`
+  - `module_or_file`: `tests/phase_a/test_structural_coordinates_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_structural_differentiation_conjecture_registered_and_not_validated`
+  - `module_or_file`: `tests/phase_a/test_structural_differentiation_conjecture.py`
+  - `mark`: `needs_review`
+- `function`: `test_evidence_logging_into_validation_registry`
+  - `module_or_file`: `tests/phase_a/test_structural_exposure_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_exposure_vector_well_posedness`
+  - `module_or_file`: `tests/phase_a/test_structural_exposure_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_exposure_w_e_is_edge_only_local`
+  - `module_or_file`: `tests/phase_a/test_structural_exposure_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_negative_control_global_exposure_fails_edge_only_check`
+  - `module_or_file`: `tests/phase_a/test_structural_exposure_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_freeze_empty_version_raises`
+  - `module_or_file`: `tests/phase_a/test_symbol_dictionary_freeze_phasea.py`
+  - `mark`: `needs_review`
+- `function`: `test_freeze_prevents_mutation_and_is_versioned`
+  - `module_or_file`: `tests/phase_a/test_symbol_dictionary_freeze_phasea.py`
+  - `mark`: `needs_review`
+- `function`: `test_snapshot_renderer_is_deterministic`
+  - `module_or_file`: `tests/phase_a/test_symbol_dictionary_freeze_phasea.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_response_engine_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_cas0b_drop_test.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_response_engine_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_b/test_cas0b_drop_test.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_response_engine_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_b/test_cas0b_drop_test.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas0b_minimality_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_cas0b_minimality_drop_test.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas0b_minimality_gate_rejects_missing_id`
+  - `module_or_file`: `tests/phase_b/test_cas0b_minimality_drop_test.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas0b_minimality_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_b/test_cas0b_minimality_drop_test.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas0b_response_engine_assumptions_exactly_four`
+  - `module_or_file`: `tests/phase_b/test_cas0b_response_engine_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas0b_response_engine_gate_does_not_require_operator_theory_ids`
+  - `module_or_file`: `tests/phase_b/test_cas0b_response_engine_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_b_approval_report_exists_and_has_status_and_ids`
+  - `module_or_file`: `tests/phase_b/test_cas_b_approval_report_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_b_approval_report_gate_rejects_missing_and_provisional_ids`
+  - `module_or_file`: `tests/phase_b/test_cas_b_approval_report_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_casb_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_casb_semantic_blocking_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_casb_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_b/test_casb_semantic_blocking_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_casb_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_b/test_casb_semantic_blocking_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper1_fd_operator_pack_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_paper1_operator_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper1_fd_operator_pack_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_b/test_paper1_operator_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper1_fd_operator_pack_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_b/test_paper1_operator_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_paper1_fd_operator_pack_gate_requires_exactly_four_ids`
+  - `module_or_file`: `tests/phase_b/test_paper1_operator_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_branch_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_phase_b_branch_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_branch_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_b/test_phase_b_branch_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_branch_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_b/test_phase_b_branch_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_curvature_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_phase_b_curvature_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_curvature_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_b/test_phase_b_curvature_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_curvature_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_b/test_phase_b_curvature_semantic_blocking.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_closure_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_b/test_phase_b_dependency_audit_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_closure_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_b/test_phase_b_dependency_audit_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_closure_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_b/test_phase_b_dependency_audit_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_dependency_audit_doc_exists_and_mentions_ids`
+  - `module_or_file`: `tests/phase_b/test_phase_b_dependency_audit_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_prime_closure_report_doc_matches_renderer`
+  - `module_or_file`: `tests/phase_b/test_phase_b_prime_closure_report_doc_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_boundary_allows_spectral_only_when_certified`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_boundary_gate_rejects_operator_theory_identifiers`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_boundary_requires_explicit_spectral_opt_in`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_minimality_drop_each_required_id_blocks_phase_c_permission`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_dependency_set_doc_exists_and_mentions_required_ids`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_smoke_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_smoke_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0c_smoke_gate_rejects_not_certified`
+  - `module_or_file`: `tests/phase_c/test_cas_0c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_c_minimality_drop_each_required_id_blocks_baseline`
+  - `module_or_file`: `tests/phase_c/test_cas_c_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_c_approval_report_exists_and_mentions_baseline_ids`
+  - `module_or_file`: `tests/phase_c/test_cas_c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_c_smoke_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_cas_c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_c_smoke_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_cas_c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_c_smoke_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_c/test_cas_c_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_hessian_block_extraction_matches_expected_submatrices`
+  - `module_or_file`: `tests/phase_c/test_hessian_block_extraction.py`
+  - `mark`: `needs_review`
+- `function`: `test_hessian_block_extraction_rejects_invalid_partition`
+  - `module_or_file`: `tests/phase_c/test_hessian_block_extraction.py`
+  - `mark`: `needs_review`
+- `function`: `test_hessian_block_extraction_rejects_non_square`
+  - `module_or_file`: `tests/phase_c/test_hessian_block_extraction.py`
+  - `mark`: `needs_review`
+- `function`: `test_hessian_block_extraction_symmetry_check_rejects_non_symmetric`
+  - `module_or_file`: `tests/phase_c/test_hessian_block_extraction.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_base_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_base_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_base_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_phase_c_base_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_base_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_c/test_phase_c_base_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_block_structure_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_block_structure_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_block_structure_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_phase_c_block_structure_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_block_structure_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_c/test_phase_c_block_structure_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_dominance_gate_non_spectral_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_dominance_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_dominance_gate_non_spectral_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_phase_c_dominance_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_dominance_gate_non_spectral_rejects_provisional`
+  - `module_or_file`: `tests/phase_c/test_phase_c_dominance_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_dominance_gate_spectral_accepts_only_when_opt_in_is_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_dominance_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_dominance_gate_spectral_requires_explicit_cas0c_spectral_id`
+  - `module_or_file`: `tests/phase_c/test_phase_c_dominance_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_inverse_bounds_only_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_inverse_sign_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_inverse_bounds_only_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_phase_c_inverse_sign_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_inverse_bounds_only_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_c/test_phase_c_inverse_sign_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_inverse_entrywise_sign_gate_accepts_only_when_opt_in_is_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_inverse_sign_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_inverse_entrywise_sign_gate_requires_cas0c_spectral_mmatrix_ids`
+  - `module_or_file`: `tests/phase_c/test_phase_c_inverse_sign_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_prime_closure_report_doc_matches_renderer`
+  - `module_or_file`: `tests/phase_c/test_phase_c_prime_closure_report_doc_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_scaling_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_c/test_phase_c_scaling_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_scaling_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_c/test_phase_c_scaling_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_c_scaling_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_c/test_phase_c_scaling_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_partition_missing_coverage_allowed_when_enabled`
+  - `module_or_file`: `tests/phase_c/test_structural_coordinates_partition.py`
+  - `mark`: `needs_review`
+- `function`: `test_partition_missing_coverage_raises_by_default`
+  - `module_or_file`: `tests/phase_c/test_structural_coordinates_partition.py`
+  - `mark`: `needs_review`
+- `function`: `test_partition_out_of_range_raises`
+  - `module_or_file`: `tests/phase_c/test_structural_coordinates_partition.py`
+  - `mark`: `needs_review`
+- `function`: `test_partition_overlap_raises`
+  - `module_or_file`: `tests/phase_c/test_structural_coordinates_partition.py`
+  - `mark`: `needs_review`
+- `function`: `test_partition_valid_disjoint_full_cover_passes`
+  - `module_or_file`: `tests/phase_c/test_structural_coordinates_partition.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0d_boundary_gate_rejects_operator_theory_identifiers`
+  - `module_or_file`: `tests/phase_d/test_cas_0d_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0d_boundary_requires_explicit_spectral_opt_in`
+  - `module_or_file`: `tests/phase_d/test_cas_0d_boundary.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0d_minimality_drop_each_required_id_blocks_phase_d_permission`
+  - `module_or_file`: `tests/phase_d/test_cas_0d_minimality.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0d_dependency_set_doc_exists_and_mentions_required_ids`
+  - `module_or_file`: `tests/phase_d/test_cas_0d_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0d_smoke_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_cas_0d_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_cas_0d_smoke_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_cas_0d_smoke.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_approval_report_exists_and_has_required_anchors`
+  - `module_or_file`: `tests/phase_d/test_phase_d_approval_report_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_base_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_base_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_base_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_base_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_base_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_base_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_closeout_report_exists_and_has_required_anchors`
+  - `module_or_file`: `tests/phase_d/test_phase_d_closeout_doc_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_contract_validation_accepts_basic_contract`
+  - `module_or_file`: `tests/phase_d/test_phase_d_contract_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_contract_validation_rejects_invalid`
+  - `module_or_file`: `tests/phase_d/test_phase_d_contract_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_entry_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_entry_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_entry_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_entry_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_genericity_doc_exists`
+  - `module_or_file`: `tests/phase_d/test_phase_d_genericity_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_genericity_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_genericity_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_genericity_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_genericity_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_genericity_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_genericity_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_no_earlier_module_imports_phase_d`
+  - `module_or_file`: `tests/phase_d/test_phase_d_module_boundary_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_does_not_import_earlier_phases`
+  - `module_or_file`: `tests/phase_d/test_phase_d_module_boundary_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_public_api_is_explicit_and_stable`
+  - `module_or_file`: `tests/phase_d/test_phase_d_module_boundary_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_directional_observable_series_accepts_matching_lengths`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_directional_observable_series_rejects_invalid`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_monotone_directional_response_claim_accepts_nondecreasing_series`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_monotone_directional_response_claim_allows_decrease_with_tolerance`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_monotone_directional_response_claim_rejects_decreasing_series`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_monotone_directional_response_claim_rejects_negative_tolerance`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_monotone_directional_response_claim_rejects_parameter_label_mismatch`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_parameter_grid_accepts_strictly_increasing_points`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_validate_parameter_grid_rejects_invalid`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_directional_objects_validation.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_monotone_response_contract_doc_exists`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_response_contract_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_monotone_response_contract_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_response_contract_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_monotone_response_contract_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_response_contract_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_monotone_response_contract_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_monotone_response_contract_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_option_a_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_option_a_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_option_a_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_option_a_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_option_a_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_option_a_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_prime_closure_report_doc_matches_renderer`
+  - `module_or_file`: `tests/phase_d/test_phase_d_prime_closure_report_doc_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_strict_ordering_doc_exists`
+  - `module_or_file`: `tests/phase_d/test_phase_d_strict_ordering_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_strict_ordering_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_strict_ordering_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_strict_ordering_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_strict_ordering_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_strict_ordering_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_strict_ordering_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_structural_stability_doc_exists`
+  - `module_or_file`: `tests/phase_d/test_phase_d_structural_stability_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_structural_stability_gate_accepts_all_certified`
+  - `module_or_file`: `tests/phase_d/test_phase_d_structural_stability_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_structural_stability_gate_rejects_missing`
+  - `module_or_file`: `tests/phase_d/test_phase_d_structural_stability_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_structural_stability_gate_rejects_provisional`
+  - `module_or_file`: `tests/phase_d/test_phase_d_structural_stability_gate.py`
+  - `mark`: `needs_review`
+- `function`: `test_registry_rejects_drop_after_freeze`
+  - `module_or_file`: `tests/test_cas0a_freeze.py`
+  - `mark`: `needs_review`
+- `function`: `test_registry_rejects_register_after_freeze`
+  - `module_or_file`: `tests/test_cas0a_freeze.py`
+  - `mark`: `needs_review`
+- `function`: `test_each_property_is_individually_required_by_phase_a_seed`
+  - `module_or_file`: `tests/test_cas0a_minimality_phase0a.py`
+  - `mark`: `needs_review`
+- `function`: `test_build_registers_minimum_cas0a_keys`
+  - `module_or_file`: `tests/test_cas0a_property_catalog.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_a_seed_symbols_validate`
+  - `module_or_file`: `tests/test_cas0a_property_catalog.py`
+  - `mark`: `needs_review`
+- `function`: `test_emit_phase_artifacts_is_deterministic_and_writes_expected_files`
+  - `module_or_file`: `tests/test_certificate_schema_emission.py`
+  - `mark`: `needs_review`
+- `function`: `test_drop_unknown_fails`
+  - `module_or_file`: `tests/test_dependency_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_duplicate_register_fails`
+  - `module_or_file`: `tests/test_dependency_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_register_and_require_roundtrip`
+  - `module_or_file`: `tests/test_dependency_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_drop_test_fails_when_required_dependency_removed`
+  - `module_or_file`: `tests/test_drop_test_phaseA.py`
+  - `mark`: `needs_review`
+- `function`: `test_repo_import_graph_respects_policy_and_has_no_new_cycles`
+  - `module_or_file`: `tests/test_import_isolation_policy.py`
+  - `mark`: `needs_review`
+- `function`: `test_default_target_selects_non_spectral_ids_only`
+  - `module_or_file`: `tests/test_ordering_target_spec_cas0d_selection.py`
+  - `mark`: `needs_review`
+- `function`: `test_emission_writes_distinct_cas0d_outputs`
+  - `module_or_file`: `tests/test_ordering_target_spec_cas0d_selection.py`
+  - `mark`: `needs_review`
+- `function`: `test_pairwise_entrywise_includes_spectral_ids_when_opted_in`
+  - `module_or_file`: `tests/test_ordering_target_spec_cas0d_selection.py`
+  - `mark`: `needs_review`
+- `function`: `test_pairwise_entrywise_requires_explicit_allow_spectral_escalation`
+  - `module_or_file`: `tests/test_ordering_target_spec_cas0d_selection.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_instance_harness_accepts_concave_quadratic`
+  - `module_or_file`: `tests/test_phase_b_instance_harness.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_instance_harness_detects_degeneracy_and_witness`
+  - `module_or_file`: `tests/test_phase_b_instance_harness.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_instance_harness_rejects_nonnegative_violation`
+  - `module_or_file`: `tests/test_phase_b_instance_harness.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_instance_harness_rejects_stationarity_violation`
+  - `module_or_file`: `tests/test_phase_b_instance_harness.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_b_instance_harness_small_symmetric_perturbations`
+  - `module_or_file`: `tests/test_phase_b_instance_harness.py`
+  - `mark`: `needs_review`
+- `function`: `test_block_neumann_inversion_accepts_small_coupling`
+  - `module_or_file`: `tests/test_phase_c_nonspectral_inverse_cert.py`
+  - `mark`: `needs_review`
+- `function`: `test_block_neumann_inversion_rejects_large_coupling_with_witness`
+  - `module_or_file`: `tests/test_phase_c_nonspectral_inverse_cert.py`
+  - `mark`: `needs_review`
+- `function`: `test_dd_inverse_bound_cert_accepts_strictly_dd_matrix`
+  - `module_or_file`: `tests/test_phase_c_nonspectral_inverse_cert.py`
+  - `mark`: `needs_review`
+- `function`: `test_dd_inverse_bound_rejects_non_strict_dd`
+  - `module_or_file`: `tests/test_phase_c_nonspectral_inverse_cert.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_end_to_end_certifies_monotonicity_for_increasing_series`
+  - `module_or_file`: `tests/test_phase_d_end_to_end_validator.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_end_to_end_rejects_decreasing_series`
+  - `module_or_file`: `tests/test_phase_d_end_to_end_validator.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_end_to_end_rejects_phase_b_nonnegativity_violation`
+  - `module_or_file`: `tests/test_phase_d_end_to_end_validator.py`
+  - `mark`: `needs_review`
+- `function`: `test_phase_d_end_to_end_requires_no_silent_escalation`
+  - `module_or_file`: `tests/test_phase_d_end_to_end_validator.py`
+  - `mark`: `needs_review`
+- `function`: `test_proof_assembler_fails_loudly_with_missing_lemma_requirements`
+  - `module_or_file`: `tests/test_phase_f_proof_assembler.py`
+  - `mark`: `needs_review`
+- `function`: `test_proof_assembler_succeeds_when_all_requirements_certified`
+  - `module_or_file`: `tests/test_phase_f_proof_assembler.py`
+  - `mark`: `needs_review`
+- `function`: `test_programme_acceptance_criteria_doc_exists_and_has_required_anchors`
+  - `module_or_file`: `tests/test_programme_acceptance_criteria_lockdown.py`
+  - `mark`: `needs_review`
+- `function`: `test_symbol_add_and_get`
+  - `module_or_file`: `tests/test_symbol_dictionary.py`
+  - `mark`: `needs_review`
+- `function`: `test_symbol_requires_registered_dependency`
+  - `module_or_file`: `tests/test_symbol_dictionary.py`
+  - `mark`: `needs_review`
+- `function`: `test_add_evidence_works_and_missing_id_fails`
+  - `module_or_file`: `tests/validation/test_validation_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_promotion_transition_rules_enforced`
+  - `module_or_file`: `tests/validation/test_validation_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_register_assumption_and_duplicate_fails`
+  - `module_or_file`: `tests/validation/test_validation_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_register_statement_and_duplicate_fails`
+  - `module_or_file`: `tests/validation/test_validation_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_require_assumption_certified_transition`
+  - `module_or_file`: `tests/validation/test_validation_registry.py`
+  - `mark`: `needs_review`
+- `function`: `test_require_statement_validated_transition`
+  - `module_or_file`: `tests/validation/test_validation_registry.py`
+  - `mark`: `needs_review`

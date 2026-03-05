@@ -1,0 +1,14 @@
+{
+  "cas_kind": "CAS-X",
+  "certificates": [
+    {
+      "id": "CAS-0D.PLACEHOLDER",
+      "justification": "Task 04 establishes schema + emission plumbing; phase-specific CAS-X population occurs in later tasks.",
+      "kind": "NONCHECKABLE",
+      "statement": "CAS-X emission placeholder"
+    }
+  ],
+  "notes": [],
+  "phase": "0D",
+  "schema_version": "1"
+}

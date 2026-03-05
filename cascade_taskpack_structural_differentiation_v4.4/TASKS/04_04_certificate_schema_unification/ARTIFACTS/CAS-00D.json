@@ -1,0 +1,120 @@
+{
+  "cas_kind": "CAS-0",
+  "certificates": [
+    {
+      "id": "CAS-0D.BOUNDARY.NO_OPERATOR_THEORY",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.BOUNDARY.NO_SPECTRAL_DEFAULT",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.COMPARISON.INEQUALITIES.BASIC",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.DTHETA_G.SIGN_STRUCTURE.INPUT",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.INVERSE.BOUNDS.SUFFICIENT_FOR_MONOTONICITY",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.ORDERING.GOAL.MONOTONE_RESPONSE.LOCAL",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.SPECTRAL.MMATRIX.ENTRYWISE_SIGN_SELECTED",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "PROVISIONAL",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-0D.SPECTRAL.MMATRIX.IRREDUCIBILITY_STRICTNESS",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "PROVISIONAL",
+      "text": "CAS-0D governance placeholder"
+    },
+    {
+      "id": "CAS-C.BASIS.STRUCTURAL_COORDINATES",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-C governance placeholder"
+    },
+    {
+      "id": "CAS-C.DD.BLOCK_DOMINANCE.NON_SPECTRAL",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-C governance placeholder"
+    },
+    {
+      "id": "CAS-C.DD.BLOCK_DOMINANCE.SPECTRAL_OPT_IN",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "PROVISIONAL",
+      "text": "CAS-C governance placeholder"
+    },
+    {
+      "id": "CAS-C.HESSIAN.BLOCK_STRUCTURE",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-C governance placeholder"
+    },
+    {
+      "id": "CAS-C.MMATRIX.CONDITIONS.SPECTRAL_OPT_IN",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "PROVISIONAL",
+      "text": "CAS-C governance placeholder"
+    },
+    {
+      "id": "CAS-C.SCALING.EXPOSURE_TO_CURVATURE",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-C governance placeholder"
+    }
+  ],
+  "notes": [],
+  "phase": "0D",
+  "schema_version": "1"
+}

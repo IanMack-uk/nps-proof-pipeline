@@ -1,0 +1,56 @@
+{
+  "cas_kind": "CAS-0",
+  "certificates": [
+    {
+      "id": "CAS-0D.BOUNDARY.NO_OPERATOR_THEORY",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D generated from OrderingTargetSpec"
+    },
+    {
+      "id": "CAS-0D.BOUNDARY.NO_SPECTRAL_DEFAULT",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D generated from OrderingTargetSpec"
+    },
+    {
+      "id": "CAS-0D.COMPARISON.INEQUALITIES.BASIC",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D generated from OrderingTargetSpec"
+    },
+    {
+      "id": "CAS-0D.DTHETA_G.SIGN_STRUCTURE.INPUT",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D generated from OrderingTargetSpec"
+    },
+    {
+      "id": "CAS-0D.INVERSE.BOUNDS.SUFFICIENT_FOR_MONOTONICITY",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D generated from OrderingTargetSpec"
+    },
+    {
+      "id": "CAS-0D.ORDERING.GOAL.MONOTONE_RESPONSE.LOCAL",
+      "kind": "ASSUMPTION",
+      "scope": "FOUNDATIONS",
+      "sources": [],
+      "status": "CERTIFIED",
+      "text": "CAS-0D generated from OrderingTargetSpec"
+    }
+  ],
+  "notes": [],
+  "phase": "0D",
+  "schema_version": "1"
+}

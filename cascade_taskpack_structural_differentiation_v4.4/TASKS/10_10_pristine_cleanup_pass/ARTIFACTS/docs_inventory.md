@@ -1,0 +1,134 @@
+# Documentation Inventory
+
+Classification per Task 10. Only `generated_outputs` are candidates for removal.
+
+## programme_spec
+
+- `docs/specs/.gitkeep`
+- `docs/specs/cas0a_audit_report.md`
+- `docs/specs/cas0a_property_catalog.md`
+- `docs/specs/cas_0b_approval_report.md`
+- `docs/specs/cas_0b_dependency_set.md`
+- `docs/specs/cas_0b_operator_tools_fd.md`
+- `docs/specs/cas_0b_vs_cas_a_compatibility.md`
+- `docs/specs/cas_0c_approval_report.md`
+- `docs/specs/cas_0c_cas_b_compatibility_audit.md`
+- `docs/specs/cas_0c_dependency_extraction_map.md`
+- `docs/specs/cas_0c_dependency_set.md`
+- `docs/specs/cas_0c_tool_ledger.md`
+- `docs/specs/cas_0c_tool_ledger_draft.md`
+- `docs/specs/cas_0d_approval_report.md`
+- `docs/specs/cas_0d_cas_0c_cas_c_compatibility_audit.md`
+- `docs/specs/cas_0d_dependency_extraction_map.md`
+- `docs/specs/cas_0d_dependency_set.md`
+- `docs/specs/cas_0d_tool_ledger.md`
+- `docs/specs/cas_a_assumption_ledger.md`
+- `docs/specs/cas_a_domain_policy.md`
+- `docs/specs/cas_a_paper0_coordinate_import.md`
+- `docs/specs/cas_a_structural_coordinates.md`
+- `docs/specs/cas_a_structural_exposure.md`
+- `docs/specs/cas_a_symbol_dictionary.md`
+- `docs/specs/cas_b_approval_report.md`
+- `docs/specs/cas_b_assumption_ledger.md`
+- `docs/specs/cas_b_curvature_assumptions.md`
+- `docs/specs/cas_c_approval_report.md`
+- `docs/specs/cas_c_approval_report_TEMPLATE.md`
+- `docs/specs/cas_c_assumption_packs.md`
+- `docs/specs/codebase_dependency_dag.md`
+- `docs/specs/codebase_status_report.md`
+- `docs/specs/import_isolation_enforcement.md`
+- `docs/specs/import_policy.json`
+- `docs/specs/phase_0b_cas_0b_approval_report.md`
+- `docs/specs/phase_0b_paper1_import_audit.md`
+- `docs/specs/phase_0b_paper1_operator_objects_fd.md`
+- `docs/specs/phase_0c_dependency_dag.md`
+- `docs/specs/phase_a_cas_a_approval_report.md`
+- `docs/specs/phase_a_closure_report.md`
+- `docs/specs/phase_a_fragility_audit_checklist.md`
+- `docs/specs/phase_a_lemma_pack.md`
+- `docs/specs/phase_a_paper0_dependency_audit.md`
+- `docs/specs/phase_a_structural_differentiation_conjecture.md`
+- `docs/specs/phase_b_analytic_tools_certification.md`
+- `docs/specs/phase_b_dependency_audit.md`
+- `docs/specs/phase_b_dependency_dag.md`
+- `docs/specs/phase_b_equilibrium_branch_lemma.md`
+- `docs/specs/phase_b_equilibrium_conditions.md`
+- `docs/specs/phase_b_equilibrium_regime.md`
+- `docs/specs/phase_b_local_concavity_lemma.md`
+- `docs/specs/phase_b_operator_objects.md`
+- `docs/specs/phase_b_prime_closure_report.md`
+- `docs/specs/phase_b_response_identity.md`
+- `docs/specs/phase_b_response_identity_derivation.md`
+- `docs/specs/phase_c_diagonal_dominance_plan.md`
+- `docs/specs/phase_c_hessian_block_structure.md`
+- `docs/specs/phase_c_inverse_sign_structure_plan.md`
+- `docs/specs/phase_c_overview.md`
+- `docs/specs/phase_c_prime_closure_report.md`
+- `docs/specs/phase_c_scaling_plan.md`
+- `docs/specs/phase_d_approval_report.md`
+- `docs/specs/phase_d_closeout_TEMPLATE.md`
+- `docs/specs/phase_d_closeout_report.md`
+- `docs/specs/phase_d_genericity_plan.md`
+- `docs/specs/phase_d_monotone_comparative_statics.md`
+- `docs/specs/phase_d_ordering_theorem.md`
+- `docs/specs/phase_d_prime_closure_report.md`
+- `docs/specs/phase_d_strict_ordering_plan.md`
+- `docs/specs/phase_d_structural_stability_plan.md`
+- `docs/specs/programme_acceptance_criteria.md`
+
+## governance_spec
+
+
+## implementation_docs
+
+- `docs/.DS_Store`
+- `docs/CASCADE_PHASEB_STEP_B5_RESPONSE_CLOSURE_AND_AUDIT.md`
+- `docs/Cascade_Phase_0C1_Backward_Extraction_Instructions.md`
+- `docs/Cascade_Phase_0C2_0C5_Certification_Closeout_Instructions.md`
+- `docs/Cascade_Phase_B_Closeout_Instructions.md`
+- `docs/Cascade_Phase_C_Interfaces_and_Doc_Tightening.md`
+- `docs/Cascade_Phase_C_Scaffolding_and_Gates.md`
+- `docs/Computational_Certification_Architect_Role_Prompt.md`
+- `docs/Structural_Differentiation_Programme_v4.3_STRUCTURED.md`
+- `docs/bootstrap/CASCADE_BOOTSTRAP_INSTRUCTIONS.md`
+- `docs/models/CASCADE_MODELS_STEP0_SANDBOX.md`
+- `docs/models/CASCADE_MODELS_STEP1_LOCALITY.md`
+- `docs/models/CASCADE_MODELS_STEP2_PROJECTED_OPTIMALITY.md`
+- `docs/models/CASCADE_MODELS_STEP3_COMPARATIVE_STATICS.md`
+- `docs/phases/README.md`
+- `docs/phases/phase0a/CASCADE_PHASE0A_AUDIT_AND_APPROVAL.md`
+- `docs/phases/phase1/CASCADE_PHASE1_HARDEN_REGISTRY.md`
+- `docs/phases/phase2/CASCADE_PHASE2_CAS0A_CATALOG_AND_SEED_SYMBOLS.md`
+- `docs/phases/phase_0b/CASCADE_CAS0B_FORMAL_APPROVAL_NOTE.md`
+- `docs/phases/phase_0b/CASCADE_PHASE0B_COMPLETION_PACK_RESPONSE_ENGINE_CERTIFICATION.md`
+- `docs/phases/phase_0b/CASCADE_PHASE0B_PAPER1_IMPORT_AUDIT_AND_RESPONSE_ENGINE_TIGHTENING.md`
+- `docs/phases/phase_0b/CASCADE_PHASE0B_STEP_B1_DOCS_TESTS_TIGHTENING_PATCH.md`
+- `docs/phases/phase_0b/CASCADE_PHASE0B_STEP_B1_DOCS_TESTS_TIGHTENING_PATCH2.md`
+- `docs/phases/phase_0b/CASCADE_PHASE0B_STEP_B1_RESPONSE_ENGINE_CERTIFICATION.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_COMPLETION_PACK_CASA_APPROVAL_LEMMAS_PAPER0_AUDIT.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_FINAL_CONCEPTUAL_MATHEMATICAL_AUDIT.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_FRAGILITY_AUDIT_AND_HARDENING.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A0_VALIDATION_LAYER.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A1_THEOREM_CONJECTURE.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A2_NOTATION_FREEZE.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A3_STRUCTURAL_EXPOSURE_VALIDATION.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A4_EXTRACT_CAS_A_ASSUMPTIONS.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A5_STRUCTURAL_COORDINATES_AND_INTERFACE.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A6_CLOSURE_AND_MINIMALITY.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A7_IMPORT_PAPER0_STRUCTURAL_COORDINATES.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A8_NONNEGATIVE_DOMAIN_POLICY.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STEP_A9_GRAPH_NEIGHBORHOODS_AND_AUTOMORPHISMS.md`
+- `docs/phases/phase_a/CASCADE_PHASEA_STRUCTURAL_STABILITY_HARDENING.md`
+- `docs/phases/phase_b/CASCADE_PHASE0B_PAPER1_FD_OPERATOR_CERTIFICATION_PACK.md`
+- `docs/phases/phase_b/CASCADE_PHASEB_STEP_B2_INTERIOR_EQUILIBRIUM_SCAFFOLD.md`
+- `docs/phases/phase_b/CASCADE_PHASEB_STEP_B3_BRANCH_AND_RESPONSE.md`
+- `docs/phases/phase_b/CASCADE_PHASEB_STEP_B4_LOCAL_STRICT_CONCAVITY.md`
+- `docs/programme/.gitkeep`
+- `docs/reports/PROJECT_SETUP_REPORT.md`
+- `docs/reports/paper0_coordinate_falsification_log.md`
+- `docs/reports/signed_redteam_log.md`
+
+## historical_notes
+
+
+## generated_outputs

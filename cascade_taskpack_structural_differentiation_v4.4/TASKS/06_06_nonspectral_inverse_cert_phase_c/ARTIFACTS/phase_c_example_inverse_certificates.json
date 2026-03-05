@@ -1,0 +1,31 @@
+{
+  "a_inv_bound": {
+    "bound": 0.4166666666666667,
+    "dominance_margin": {
+      "margin_min": 2.4,
+      "margins": [
+        2.8,
+        2.4
+      ]
+    },
+    "norm": "inf"
+  },
+  "d_inv_bound": {
+    "bound": 0.5263157894736842,
+    "dominance_margin": {
+      "margin_min": 1.9,
+      "margins": [
+        2.1,
+        1.9
+      ]
+    },
+    "norm": "inf"
+  },
+  "neumann": {
+    "contraction_value": 0.00020559210526315794,
+    "inverse_bound": 1.0002056343820687,
+    "is_contraction": true,
+    "norm": "inf",
+    "witness": "{\"bound_Ainv_inf\": 0.4166666666666667, \"bound_Dinv_inf\": 0.5263157894736842, \"contraction_bound\": 0.00020559210526315794, \"neumann_inverse_bound\": 1.0002056343820687, \"norm_B_inf\": 0.037500000000000006, \"norm_C_inf\": 0.025}"
+  }
+}

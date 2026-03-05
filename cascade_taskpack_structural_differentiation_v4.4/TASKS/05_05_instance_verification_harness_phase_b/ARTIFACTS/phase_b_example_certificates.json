@@ -1,0 +1,28 @@
+{
+  "equilibrium": {
+    "grad_inf_norm": 0.0,
+    "grad_l2_norm": 0.0,
+    "is_feasible_nonnegative": true,
+    "min_w": 0.2,
+    "w": [
+      0.2,
+      0.2,
+      0.2,
+      0.2,
+      0.2
+    ]
+  },
+  "hessian": {
+    "condition_number_abs_eigs": 1.0,
+    "degeneracy_witness": null,
+    "eigenvalues": [
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0,
+      -1.0
+    ],
+    "is_negative_definite": true,
+    "symmetry_defect_inf_norm": 0.0
+  }
+}
