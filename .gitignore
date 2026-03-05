@@ -5,3 +5,7 @@ __pycache__/
 .pytest_cache/
 .DS_Store
 cert_artifacts/
+
+# Keep research papers in Markdown form only (no binaries in repo history)
+docs/unfinished_research_papers/**/*.docx
+docs/unfinished_research_papers/**/*.pdf
