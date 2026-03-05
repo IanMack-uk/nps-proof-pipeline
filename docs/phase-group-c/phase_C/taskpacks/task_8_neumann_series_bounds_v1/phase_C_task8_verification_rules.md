@@ -1,29 +1,45 @@
-# Phase C — Task 8 Verification Rules — Neumann-Series Inversion Bounds
+# Taskpack 8 Verification Rules (FINAL)
 
-This file defines the **authoritative check list** for Task 8.
+**Taskpack ID:** C-TASK08\
+**Schema Version:** C-TASK08.v1\
+**Generated:** 2026-03-05T14:59:23Z
 
-All check results must appear in the run-root report and in the corresponding JSON artefact(s).
+------------------------------------------------------------------------
 
-## Tolerances
+## Artefact Verified
 
-- Default numeric tolerance for symmetry / zero-tests: `1e-10` (override explicitly if needed)
-- Default “structural zero” tolerance for sparsity tests: `1e-12` (override explicitly if needed)
+    NEUMANN_SERIES_CERT.json
 
-## Required checks
+------------------------------------------------------------------------
 
-### CHK.C8.NEUMANN.SPLITTING_DEFINED
-- Description:
-- PASS condition:
-- FAIL condition:
-- Evidence source: upstream / computed
-### CHK.C8.NEUMANN.NORM_LT_1
-- Description:
-- PASS condition:
-- FAIL condition:
-- Evidence source: upstream / computed
-### CHK.C8.NEUMANN.INVERTIBILITY_CONCLUDED
-- Description:
-- PASS condition:
-- FAIL condition:
-- Evidence source: upstream / computed
+## Required Checks
 
+### CHK.C8.INPUTS.PRESENT
+
+Required files:
+
+-   HESSIAN_BLOCKS.json
+-   DIAGONAL_DOMINANCE_CERT.json
+-   COMPARISON_INEQUALITIES_CERT.json
+
+PASS if all present and parse correctly.
+
+------------------------------------------------------------------------
+
+### CHK.C8.NEUMANN.RHO_BOUND_COMPUTED
+
+Ensure
+
+    rho_bound
+
+exists and is numeric.
+
+------------------------------------------------------------------------
+
+### CHK.C8.NEUMANN.RHO_LT_ONE
+
+PASS if
+
+    rho_bound < 1
+
+FAIL otherwise.

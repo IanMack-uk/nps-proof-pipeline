@@ -107,6 +107,13 @@ def _task7_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task8_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("ok") is not True:
+            return False
+    return True
+
+
 def _phase_c_entry_approved(path: Path) -> bool:
     lines = path.read_text(encoding="utf-8").strip().splitlines()
     return bool(lines) and lines[-1].strip() == "Phase C Entry Gate: APPROVED"
@@ -1162,6 +1169,208 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # ---------------------------------------------------------------------
+    # Taskpack 8 (Neumann-series inversion bounds)
+    # Artefact-only; must not modify Phase C gating semantics.
+    # ---------------------------------------------------------------------
+    out_neumann = run_dir / "NEUMANN_SERIES_CERT.json"
+
+    required_paths8 = {
+        "HESSIAN_BLOCKS": out_blocks,
+        "DIAGONAL_DOMINANCE": out_ddom,
+        "COMPARISON_INEQUALITIES": out_cmp,
+    }
+    optional_paths8 = {
+        "HESSIAN_SPARSITY": out_sparsity,
+        "OPERATOR_LAYER": out_operator_layer,
+        "HESSIAN_MATRIX": out_hessian,
+    }
+
+    inputs_found8: list[str] = []
+    inputs_missing8: list[str] = []
+    for k, p in required_paths8.items():
+        if p.exists():
+            inputs_found8.append(k)
+        else:
+            inputs_missing8.append(k)
+    for k, p in optional_paths8.items():
+        if p.exists():
+            inputs_found8.append(k)
+
+    matrix_definition8: dict[str, Any] = {
+        "base_matrix": "H",
+        "coupling_matrix": "C := -H",
+        "block": "w_w",
+        "splitting": "C = D - B with D = diag(C) and B = D - C",
+    }
+
+    inputs_parse_ok8 = True
+    Hww8: np.ndarray | None = None
+    if inputs_missing8:
+        inputs_parse_ok8 = False
+    else:
+        try:
+            blocks_json8 = _read_json(out_blocks)
+            blocks8 = blocks_json8.get("blocks") if isinstance(blocks_json8.get("blocks"), dict) else {}
+            Hww_raw8 = blocks8.get("w_w")
+            Hww8 = np.asarray(Hww_raw8, dtype=float)
+            if Hww8.ndim != 2 or Hww8.shape[0] != Hww8.shape[1]:
+                inputs_parse_ok8 = False
+        except Exception:  # noqa: BLE001
+            inputs_parse_ok8 = False
+
+        try:
+            ddom_json8 = _read_json(out_ddom)
+            if isinstance(ddom_json8.get("matrix_definition"), dict):
+                matrix_definition8.update({"task6_matrix_definition": ddom_json8.get("matrix_definition")})
+        except Exception:  # noqa: BLE001
+            inputs_parse_ok8 = False
+
+        try:
+            cmp_json8 = _read_json(out_cmp)
+            checks7 = cmp_json8.get("checks") if isinstance(cmp_json8.get("checks"), list) else []
+            # best-effort: ensure prior step passed its required checks
+            for chk in checks7:
+                if isinstance(chk, dict) and chk.get("id") == "CHK.C7.M_MATRIX.CANDIDATE":
+                    matrix_definition8.update({"task7_candidate_m_matrix": bool(chk.get("ok") is True)})
+                    break
+        except Exception:  # noqa: BLE001
+            inputs_parse_ok8 = False
+
+    rho_bound = float("nan")
+    rho_per_row: list[float] = []
+    min_diag = float("nan")
+    bad_diag_rows: list[int] = []
+
+    if inputs_parse_ok8 and Hww8 is not None:
+        C8 = -Hww8
+        diag8 = np.diag(C8)
+        if diag8.size:
+            min_diag = float(np.min(diag8))
+        rho_vals: list[float] = []
+        for i in range(int(C8.shape[0])):
+            d_ii = float(C8[i, i])
+            off_sum = float(np.sum(np.abs(C8[i, :])) - abs(float(C8[i, i])))
+            if not np.isfinite(d_ii) or d_ii <= 0.0:
+                bad_diag_rows.append(int(i))
+                rho_i = float("inf")
+            else:
+                rho_i = off_sum / d_ii
+            rho_vals.append(float(rho_i))
+        rho_per_row = rho_vals
+        rho_bound = float(np.max(rho_vals)) if rho_vals else 0.0
+
+    task8_checks: list[dict[str, Any]] = []
+    task8_checks.append(
+        _mk_check(
+            id="CHK.C8.INPUTS.PRESENT",
+            ok=bool(inputs_parse_ok8),
+            details={
+                "inputs_found": sorted(inputs_found8),
+                "inputs_missing": sorted(inputs_missing8),
+            },
+        )
+    )
+    task8_checks.append(
+        _mk_check(
+            id="CHK.C8.NEUMANN.RHO_BOUND_COMPUTED",
+            ok=bool(inputs_parse_ok8 and np.isfinite(rho_bound)),
+            details={
+                "rho_bound": rho_bound,
+                "min_diag": min_diag,
+                "bad_diag_rows": bad_diag_rows,
+            },
+        )
+    )
+    task8_checks.append(
+        _mk_check(
+            id="CHK.C8.NEUMANN.RHO_LT_ONE",
+            ok=bool(inputs_parse_ok8 and np.isfinite(rho_bound) and rho_bound < 1.0),
+            details={
+                "rho_bound": rho_bound,
+                "threshold": 1.0,
+            },
+        )
+    )
+
+    task8_ok = _task8_all_required_pass(task8_checks)
+    neumann_payload: dict[str, Any] = {
+        "schema_version": "C-TASK08.v1",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            **{k: str(p) for k, p in required_paths8.items() if p.exists()},
+            **{k: str(p) for k, p in optional_paths8.items() if p.exists()},
+        },
+        "matrix_definition": matrix_definition8,
+        "neumann_bound": {
+            "rho_bound": rho_bound,
+            "rho_per_row": rho_per_row,
+        },
+        "witnesses": {
+            "min_diag": min_diag,
+            "bad_diag_rows": bad_diag_rows,
+        },
+        "checks": task8_checks,
+        "status": "PASS" if task8_ok else "FAIL",
+    }
+
+    write_json(out_neumann, neumann_payload)
+
+    out_task8_report = run_dir / "PhaseC_TASK8_NEUMANN_SERIES_REPORT.md"
+    out_task8_report.write_text(
+        "\n".join(
+            [
+                "# Phase C — Task 8 Report — Neumann-Series Inversion Bounds",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Date (UTC): {created_at}",
+                "Generated by: nps.phases.phase_c.build_casc (Taskpack 8 step)",
+                "",
+                "Artifacts written (run root):",
+                f"- NEUMANN_SERIES_CERT.json: {out_neumann.name}",
+                f"- PhaseC_TASK8_NEUMANN_SERIES_REPORT.md: {out_task8_report.name}",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Run",
+                "",
+                f"    {run_dir.name}",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Matrix Definition",
+                "",
+                "    C := -H",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Neumann Bound",
+                "",
+                "  Metric      Value",
+                "  ----------- -------",
+                f"  rho_bound   {rho_bound}",
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Checks",
+                "",
+                "  Check                               Status",
+                "  ----------------------------------- --------",
+                *[f"  {chk['id']:<35} {chk.get('status','FAIL')}" for chk in task8_checks],
+                "",
+                "------------------------------------------------------------------------",
+                "",
+                "## Result",
+                "",
+                f"    {'DONE' if task8_ok else 'BLOCKED'}",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -1343,6 +1552,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_task6_report,
         out_cmp,
         out_task7_report,
+        out_neumann,
+        out_task8_report,
         out_inv,
         out_exposure,
     ]
