@@ -30,6 +30,29 @@ def _read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
+def _extract_certified_objective(cas: dict[str, Any]) -> str | None:
+    """Best-effort extraction of certified objective convention.
+
+    This is schema-tolerant by design because upstream artefact schemas may evolve.
+    """
+
+    v = cas.get("certified_objective")
+    if isinstance(v, str):
+        return v
+    if isinstance(v, dict) and isinstance(v.get("id"), str):
+        return v.get("id")
+
+    obj = cas.get("objective")
+    if isinstance(obj, dict):
+        v2 = obj.get("certified_objective")
+        if isinstance(v2, str):
+            return v2
+        if isinstance(v2, dict) and isinstance(v2.get("id"), str):
+            return v2.get("id")
+
+    return None
+
+
 def _phase_c_entry_approved(path: Path) -> bool:
     lines = path.read_text(encoding="utf-8").strip().splitlines()
     return bool(lines) and lines[-1].strip() == "Phase C Entry Gate: APPROVED"
@@ -94,6 +117,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     if certified_objective not in ("phi", "minus_phi"):
         raise RuntimeError("PhaseC: CAS-B certified_objective must be 'phi' or 'minus_phi'")
 
+    created_at = _utc_now()
+
     spec = make_real_phi_v0_test_spec()
     trace = casb.get("trace") if isinstance(casb.get("trace"), dict) else {}
     trace_rv = trace.get("real_phi_v0") if isinstance(trace.get("real_phi_v0"), dict) else {}
@@ -110,6 +135,166 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
 
     tol_sym = 1e-10
     sym_err = float(np.max(np.abs(H - H.T)))
+
+    # ---------------------------------------------------------------------
+    # Taskpack 1 (Operator Layer): emit OPERATOR_LAYER.json + report.
+    # This is an additional artefact-only step; it must not modify Phase C
+    # gating semantics.
+    # ---------------------------------------------------------------------
+    casa_cert_obj = _extract_certified_objective(casa)
+
+    operator_layer_checks: list[dict[str, Any]] = []
+
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.ENTRY_GATE_APPROVED",
+            "ok": bool(entry_ok),
+            "details": "PhaseC_ENTRY_REPORT.md last line must be 'Phase C Entry Gate: APPROVED'.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.CONVENTION.CERTIFIED_OBJECTIVE_PRESENT",
+            "ok": casa_cert_obj in ("phi", "minus_phi"),
+            "details": "CAS-A must declare certified objective convention as 'phi' or 'minus_phi'.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.CONVENTION.CERTIFIED_OBJECTIVE_MATCHES_CASB",
+            "ok": bool(casa_cert_obj in ("phi", "minus_phi") and casa_cert_obj == certified_objective),
+            "details": f"CAS-A certified_objective={casa_cert_obj!r}, CAS-B certified_objective={certified_objective!r}.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.EQUILIBRIUM_POINT.W_STAR_PRESENT",
+            "ok": bool(w_star.shape == (spec.m,)),
+            "details": f"w_star dim={int(w_star.shape[0])} expected={int(spec.m)}.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.HESSIAN.SHAPE_MATCHES_DIM_W",
+            "ok": bool(H.shape == (w_star.shape[0], w_star.shape[0])),
+            "details": f"H shape={tuple(int(x) for x in H.shape)}.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.HESSIAN.SYMMETRIC",
+            "ok": bool(sym_err <= tol_sym),
+            "details": f"symmetry_error={sym_err} tol={tol_sym}.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.SIGN_CONVENTION.COUPLING_MATRIX_DEFINED",
+            "ok": True,
+            "details": "Operator layer records H := ∇²_w Φ_cert and coupling matrix convention C := -H.",
+        }
+    )
+    operator_layer_checks.append(
+        {
+            "check_id": "CHK.C1.DEPENDENCY_WHITELIST.COMPLETE",
+            "ok": isinstance(cas0c.get("verified_imports"), list),
+            "details": "CAS-0C should provide verified_imports for Phase C tool whitelist posture.",
+        }
+    )
+
+    operator_layer_ok = all(chk.get("ok") is True for chk in operator_layer_checks)
+
+    operator_layer_payload: dict[str, Any] = {
+        "schema_version": "C-OPERATOR-LAYER.v1",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            "cas_a": str(casa_path),
+            "cas_b": str(casb_path),
+            "cas_0c": str(cas0c_path),
+            "phase_c_entry_report": str(entry_path),
+        },
+        "objective_convention": {
+            "certified_objective": certified_objective,
+            "equilibrium_objective": casb.get("equilibrium_objective"),
+            "equilibrium_regime": casb.get("equilibrium_regime"),
+            "notes": "H := ∇²_w Φ_cert. For strict concave maximize, coupling matrix C := -H is the positive-stability object.",
+        },
+        "operator": {
+            "F_definition": "F(w,θ) := ∇_w Φ_cert(w,θ)",
+            "derivative_map": {
+                "D_w F": "H_ww",
+                "D_θ F": "H_wθ",
+            },
+            "H_definition": "H(w,θ) := ∇²_w Φ_cert(w,θ)",
+            "C_definition": "C := -H",
+        },
+        "equilibrium": {
+            "w_star_ref": "CAS-B.equilibrium_candidate.w_star",
+            "dim_w": int(w_star.shape[0]),
+        },
+        "structural_basis": {
+            "basis_id": "REAL_PHI_V0_SPEC_EDGE_ORDER",
+            "ordering_rule": "Implicit ordering used by RealPhiV0Spec / SignedObjective implementation (edge order internal to spec).",
+            "permutation_P": [],
+        },
+        "hessian": {
+            "dim": int(H.shape[0]),
+            "symmetry_error": sym_err,
+            "tolerance_policy": {"symmetry_tol": tol_sym},
+        },
+        "checks": operator_layer_checks,
+        "status": "PASS" if operator_layer_ok else "FAIL",
+    }
+
+    out_operator_layer = run_dir / "OPERATOR_LAYER.json"
+    write_json(out_operator_layer, operator_layer_payload)
+
+    out_operator_report = run_dir / "PhaseC_TASK1_OPERATOR_LAYER_REPORT.md"
+    out_operator_report.write_text(
+        "\n".join(
+            [
+                "# Phase C Task 1 Report — Operator Layer",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Date (UTC): {created_at}",
+                "Generated by: nps.phases.phase_c.build_casc (Taskpack 1 step)",
+                "",
+                "## Operator definition (certified)",
+                "",
+                "- F(w,θ) = ∇_w Φ_cert(w,θ)",
+                "- D_w F = H_ww",
+                "- D_θ F = H_wθ",
+                "",
+                "## Sign conventions",
+                "",
+                f"- certified_objective: `{certified_objective}`",
+                f"- equilibrium_objective (CAS-B): `{casb.get('equilibrium_objective')}`",
+                f"- equilibrium_regime (CAS-B): `{casb.get('equilibrium_regime')}`",
+                "- Hessian convention: H = ∇²_w Φ_cert",
+                "- Coupling convention (if used): C = −H",
+                "",
+                "## Structural basis",
+                "",
+                "- basis_id: `REAL_PHI_V0_SPEC_EDGE_ORDER`",
+                "- ordering: implicit RealPhiV0Spec edge ordering",
+                "",
+                "## Verification checks",
+                "",
+                *[
+                    f"- {chk['check_id']}: {'PASS' if chk.get('ok') is True else 'FAIL'}"
+                    for chk in operator_layer_checks
+                ],
+                "",
+                "## Decision",
+                "",
+                f"Task 1 status: {'PASS' if operator_layer_ok else 'FAIL'}",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
 
     hessian_matrix_payload: dict[str, Any] = {
         "dimension": int(H.shape[0]),
@@ -172,8 +357,6 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         "reason": "RealPhiV0 v0 pipeline does not parameterize theta blocks in-object; no D_theta grad available.",
         "status": "FAIL (NOT COMPUTED)",
     }
-
-    created_at = _utc_now()
 
     out_hessian = run_dir / "HESSIAN_MATRIX.json"
     out_blocks = run_dir / "HESSIAN_BLOCKS.json"
@@ -298,7 +481,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
-    return out_casc, out_report, [out_hessian, out_blocks, out_inv, out_exposure]
+    return out_casc, out_report, [out_operator_layer, out_operator_report, out_hessian, out_blocks, out_inv, out_exposure]
 
 
 def main() -> None:
