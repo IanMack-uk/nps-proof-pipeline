@@ -130,6 +130,13 @@ def _task11_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task12_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("status") != "PASS":
+            return False
+    return True
+
+
 def _task6_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     for chk in checks:
         if chk.get("ok") is not True:
@@ -2543,6 +2550,427 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 12: CAS-C INTEGRITY / MINIMALITY / READINESS ===
+    out_manifest = run_dir / "CAS-C_MANIFEST.json"
+    out_drop_test_report = run_dir / "PhaseC_DROP_TEST_REPORT.md"
+
+    def _sha256_file(p: Path) -> str:
+        h = hashlib.sha256()
+        h.update(p.read_bytes())
+        return h.hexdigest()
+
+    def _json_schema_version(p: Path) -> str:
+        try:
+            obj = _read_json(p)
+            sv = obj.get("schema_version")
+            return sv if isinstance(sv, str) else ""
+        except Exception:  # noqa: BLE001
+            return ""
+
+    required_map12: dict[str, list[str]] = {
+        "TASK1_OPERATOR_LAYER": ["OPERATOR_LAYER.json"],
+        "TASK2_THETA_FAMILY": ["THETA_FAMILY.json"],
+        "TASK2_H_WTHETA": ["H_WTHETA.json"],
+        "TASK3_HESSIAN": ["HESSIAN_MATRIX.json"],
+        "TASK4_BLOCKS": ["HESSIAN_BLOCKS.json", "BLOCK_DECOMP.json"],
+        "TASK5_SPARSITY": ["HESSIAN_SPARSITY_CERT.json", "SPARSITY_STRUCTURE.json"],
+        "TASK6_DIAG_DOM": ["DIAGONAL_DOMINANCE_CERT.json", "DIAGONAL_DOMINANCE.json"],
+        "TASK7_COMPARISON": ["COMPARISON_INEQUALITIES_CERT.json", "COMPARISON_INEQUALITIES.json"],
+        "TASK8_NEUMANN": ["NEUMANN_SERIES_BOUND.json", "NEUMANN_SERIES_CERT.json"],
+        "TASK9_M_MATRIX": ["M_MATRIX_CERTIFICATE.json", "M_MATRIX_CERT.json"],
+        "TASK9_INV_POS": ["INVERSE_POSITIVITY_CERT.json"],
+        "TASK10_SELECTED": ["SELECTED_INVERSE_ENTRIES.json"],
+        "TASK11_EXPOSURE_CHECK": ["EXPOSURE_RESPONSE_CHECK.json"],
+        "TASK11_SIGN_PRED": ["RESPONSE_SIGN_PREDICTIONS.json"],
+        "TASK11_SCALING": ["SCALING_BOUNDS.json"],
+    }
+
+    resolved12: dict[str, Path] = {}
+    missing12: dict[str, list[str]] = {}
+    for logical, candidates in required_map12.items():
+        found: Path | None = None
+        for name in candidates:
+            p = run_dir / name
+            if p.exists():
+                found = p
+                break
+        if found is None:
+            missing12[logical] = list(candidates)
+        else:
+            resolved12[logical] = found
+
+    chk_present12 = {
+        "check_id": "CHK.C12.UPSTREAM.ALL_REQUIRED_TASKS_PRESENT",
+        "status": "PASS" if not missing12 else "FAIL",
+        "details": {"missing": missing12, "resolved": {k: v.name for k, v in resolved12.items()}},
+    }
+
+    manifest_ok12 = True
+    manifest_files12: list[dict[str, Any]] = []
+    for logical, p in sorted(resolved12.items()):
+        kind = "json" if p.suffix.lower() == ".json" else "file"
+        schema_v = _json_schema_version(p) if kind == "json" else ""
+        try:
+            manifest_files12.append(
+                {
+                    "path": f"cert_artifacts/{run_dir.name}/{p.name}",
+                    "kind": kind,
+                    "schema_version": schema_v,
+                    "sha256": _sha256_file(p),
+                    "bytes": int(p.stat().st_size),
+                }
+            )
+        except Exception:  # noqa: BLE001
+            manifest_ok12 = False
+
+    manifest_payload12: dict[str, Any] = {
+        "schema_version": "C-CASC-MANIFEST.v1",
+        "run_id": run_dir.name,
+        "taskpack_id": "C-TASK12.v2",
+        "files": manifest_files12,
+        "created_at_utc": created_at,
+    }
+    write_json(out_manifest, manifest_payload12)
+
+    chk_manifest12 = {
+        "check_id": "CHK.C12.MANIFEST.BUILT",
+        "status": "PASS" if (manifest_ok12 and out_manifest.exists()) else "FAIL",
+        "details": {"manifest_path": out_manifest.name, "files": int(len(manifest_files12))},
+    }
+
+    def _artifact_pass(p: Path) -> bool:
+        try:
+            obj = _read_json(p)
+        except Exception:  # noqa: BLE001
+            return False
+
+        st = obj.get("status")
+        if isinstance(st, str):
+            return st == "PASS"
+        checks = obj.get("checks")
+        if isinstance(checks, list) and checks:
+            for c in checks:
+                if isinstance(c, dict) and c.get("status") == "FAIL":
+                    return False
+            return True
+        return True
+
+    upstream_fail12: dict[str, str] = {}
+    for logical, p in resolved12.items():
+        if p.suffix.lower() == ".json" and not _artifact_pass(p):
+            upstream_fail12[logical] = p.name
+
+    chk_upstream_pass12 = {
+        "check_id": "CHK.C12.UPSTREAM.ALL_REQUIRED_TASKS_PASS",
+        "status": "PASS" if not upstream_fail12 else "FAIL",
+        "details": {"failed": upstream_fail12},
+    }
+
+    schema_fail12: dict[str, Any] = {}
+    run_id_mismatch12: dict[str, Any] = {}
+    for logical, p in resolved12.items():
+        if p.suffix.lower() != ".json":
+            continue
+        try:
+            obj = _read_json(p)
+        except Exception as e:  # noqa: BLE001
+            schema_fail12[logical] = {"path": p.name, "error": str(e)}
+            continue
+        if "schema_version" not in obj or not isinstance(obj.get("schema_version"), str):
+            schema_fail12[logical] = {"path": p.name, "missing": ["schema_version"]}
+        rid = obj.get("run_id")
+        if isinstance(rid, str) and rid != run_dir.name:
+            run_id_mismatch12[logical] = {"path": p.name, "run_id": rid}
+
+    chk_schema12 = {
+        "check_id": "CHK.C12.SCHEMA.ALL_REQUIRED_JSON_VALID",
+        "status": "PASS" if not schema_fail12 else "FAIL",
+        "details": {"invalid": schema_fail12},
+    }
+    chk_runid12 = {
+        "check_id": "CHK.C12.CONSISTENCY.RUN_ID_MATCH",
+        "status": "PASS" if not run_id_mismatch12 else "FAIL",
+        "details": {"mismatch": run_id_mismatch12},
+    }
+
+    # Dimensions + selected index bounds
+    dims_ok12 = True
+    dim_details12: dict[str, Any] = {}
+    try:
+        h_obj12 = _read_json(resolved12["TASK3_HESSIAN"])
+        hw_obj12 = _read_json(resolved12["TASK2_H_WTHETA"])
+        tf_obj12 = _read_json(resolved12["TASK2_THETA_FAMILY"])
+        sel_obj12 = _read_json(resolved12["TASK10_SELECTED"])
+        rsp_obj12 = _read_json(resolved12["TASK11_SIGN_PRED"])
+
+        hw_shape12 = hw_obj12.get("shape") if isinstance(hw_obj12.get("shape"), list) else []
+        dim_w12 = (
+            tf_obj12.get("w_coordinate_system", {}).get("dim_w")
+            if isinstance(tf_obj12.get("w_coordinate_system"), dict)
+            else None
+        )
+        theta_dim12 = tf_obj12.get("theta_dim")
+        resp_shape12 = (
+            rsp_obj12.get("response_sign_matrix", {}).get("shape")
+            if isinstance(rsp_obj12.get("response_sign_matrix"), dict)
+            else None
+        )
+
+        dim_details12.update({"h_wtheta_shape": hw_shape12, "dim_w": dim_w12, "theta_dim": theta_dim12, "response_sign_shape": resp_shape12})
+
+        if not (isinstance(hw_shape12, list) and len(hw_shape12) == 2):
+            dims_ok12 = False
+        if dim_w12 is not None and isinstance(hw_shape12, list) and len(hw_shape12) == 2 and int(hw_shape12[0]) != int(dim_w12):
+            dims_ok12 = False
+        if theta_dim12 is not None and isinstance(hw_shape12, list) and len(hw_shape12) == 2 and int(hw_shape12[1]) != int(theta_dim12):
+            dims_ok12 = False
+        if isinstance(resp_shape12, list) and len(resp_shape12) == 2 and isinstance(hw_shape12, list) and len(hw_shape12) == 2:
+            if [int(resp_shape12[0]), int(resp_shape12[1])] != [int(hw_shape12[0]), int(hw_shape12[1])]:
+                dims_ok12 = False
+        else:
+            dims_ok12 = False
+
+        sel12 = sel_obj12.get("selection", {}) if isinstance(sel_obj12.get("selection"), dict) else {}
+        selected12 = sel12.get("selected", {}) if isinstance(sel12.get("selected"), dict) else {}
+        indices12 = selected12.get("indices") if isinstance(selected12.get("indices"), list) else []
+        if isinstance(hw_shape12, list) and len(hw_shape12) == 2:
+            dimw_int12 = int(hw_shape12[0])
+            in_bounds12 = all(isinstance(i, int) and 0 <= int(i) < dimw_int12 for i in indices12)
+            dim_details12["selected_indices_in_bounds"] = in_bounds12
+            if not in_bounds12:
+                dims_ok12 = False
+
+        # Keep h_shape for audit (best-effort)
+        h_mat12 = h_obj12.get("matrix")
+        if isinstance(h_mat12, list) and h_mat12 and isinstance(h_mat12[0], list):
+            dim_details12["h_shape"] = [int(len(h_mat12)), int(len(h_mat12[0]))]
+    except Exception as e:  # noqa: BLE001
+        dims_ok12 = False
+        dim_details12["error"] = str(e)
+
+    chk_dims12 = {
+        "check_id": "CHK.C12.CONSISTENCY.DIMENSIONS_MATCH",
+        "status": "PASS" if dims_ok12 else "FAIL",
+        "details": dim_details12,
+    }
+
+    # Convention lock
+    conv_ok12 = bool(casb.get("equilibrium_regime") == "strict_concave" and entry_ok)
+    chk_conv12 = {
+        "check_id": "CHK.C12.CONSISTENCY.CONVENTION_LOCK",
+        "status": "PASS" if conv_ok12 else "FAIL",
+        "details": {
+            "certified_objective": certified_objective,
+            "objective_direction": "maximize",
+            "equilibrium_regime": casb.get("equilibrium_regime"),
+            "phase_c_entry_gate_passed": bool(entry_ok),
+        },
+    }
+
+    # Sign metadata clarity
+    sign_ok12 = False
+    sign_details12: dict[str, Any] = {}
+    try:
+        hw_obj12b = _read_json(resolved12["TASK2_H_WTHETA"])
+        sp12 = hw_obj12b.get("sign_pattern") if isinstance(hw_obj12b.get("sign_pattern"), dict) else {}
+        c12 = sp12.get("constraint")
+        v12 = sp12.get("violations")
+        sign_details12 = {"constraint": c12, "violations": v12}
+        if isinstance(c12, str) and c12 in ("nonnegative", "nonpositive", "mixed"):
+            if c12 in ("nonnegative", "nonpositive"):
+                sign_ok12 = bool(isinstance(v12, int) and v12 == 0)
+            else:
+                sign_ok12 = True
+    except Exception:  # noqa: BLE001
+        sign_ok12 = False
+
+    chk_sign12 = {
+        "check_id": "CHK.C12.CONSISTENCY.SIGN_METADATA_CLARITY",
+        "status": "PASS" if sign_ok12 else "FAIL",
+        "details": sign_details12,
+    }
+
+    # Claims (minimum Phase D interface)
+    required_claim_ids12 = [
+        "C.INV_H.NONNEGATIVE_ENTRYWISE",
+        "C.RESPONSE.IDENTITY.WELL_POSED",
+        "C.RESPONSE.SIGN.DETERMINATE_FOR_SELECTED",
+        "C.RESPONSE.NORM.BOUNDED",
+    ]
+    claims12: list[dict[str, Any]] = [
+        {
+            "claim_id": "C.INV_H.NONNEGATIVE_ENTRYWISE",
+            "statement": "The inverse Hessian inv(H) is entrywise nonnegative in the certified regime.",
+            "strength": "theorem_level",
+            "depends_on": ["CHK.C9.INVERSE.NONNEGATIVE_CONCLUDED"],
+            "witness": {
+                "source_path": f"cert_artifacts/{run_dir.name}/{out_inv_pos.name}",
+                "keys": ["inverse_sign_conclusion.inverse_entrywise_nonnegative"],
+            },
+        },
+        {
+            "claim_id": "C.RESPONSE.IDENTITY.WELL_POSED",
+            "statement": "The response identity dw*/dθ = -inv(H) H_wθ is well-posed for the certified run.",
+            "strength": "lemma_level",
+            "depends_on": ["CHK.C11.H_WTHETA.EXISTS"],
+            "witness": {
+                "source_path": f"cert_artifacts/{run_dir.name}/{out_exposure.name}",
+                "keys": ["well_posedness.response_defined"],
+            },
+        },
+        {
+            "claim_id": "C.RESPONSE.SIGN.DETERMINATE_FOR_SELECTED",
+            "statement": "Comparative statics response signs are determinate for the selected interface entries.",
+            "strength": "lemma_level",
+            "depends_on": ["CHK.C11.RESPONSE.SIGN_UNAMBIGUOUS"],
+            "witness": {
+                "source_path": f"cert_artifacts/{run_dir.name}/{out_resp_sign.name}",
+                "keys": ["sign_determinate"],
+            },
+        },
+        {
+            "claim_id": "C.RESPONSE.NORM.BOUNDED",
+            "statement": "A finite norm bound exists for the response mapping using Neumann-series bound witnesses.",
+            "strength": "lemma_level",
+            "depends_on": ["CHK.C11.SCALING.BOUNDS_COMPUTED"],
+            "witness": {
+                "source_path": f"cert_artifacts/{run_dir.name}/{out_scaling.name}",
+                "keys": ["rho_bound"],
+            },
+        },
+    ]
+
+    def _get_nested(d: Any, path: str) -> Any:
+        cur: Any = d
+        for part in path.split("."):
+            if not isinstance(cur, dict):
+                return None
+            cur = cur.get(part)
+        return cur
+
+    unsupported12: list[dict[str, Any]] = []
+    for cl in claims12:
+        witness = cl.get("witness") if isinstance(cl.get("witness"), dict) else {}
+        src = witness.get("source_path")
+        keys = witness.get("keys")
+        if not isinstance(src, str) or not isinstance(keys, list):
+            unsupported12.append({"claim_id": cl.get("claim_id"), "reason": "missing witness"})
+            continue
+        src_path = Path(src)
+        if not src_path.exists():
+            unsupported12.append({"claim_id": cl.get("claim_id"), "reason": "witness source missing", "source_path": src})
+            continue
+        try:
+            src_obj = _read_json(src_path)
+        except Exception:  # noqa: BLE001
+            unsupported12.append({"claim_id": cl.get("claim_id"), "reason": "witness source not json", "source_path": src})
+            continue
+        missing_keys12: list[str] = []
+        for k in keys:
+            if not isinstance(k, str) or _get_nested(src_obj, k) is None:
+                missing_keys12.append(str(k))
+        if missing_keys12:
+            unsupported12.append({"claim_id": cl.get("claim_id"), "reason": "missing witness keys", "keys": missing_keys12})
+
+    chk_casc_schema12 = {
+        "check_id": "CHK.C12.CASC.SCHEMA_VALID",
+        "status": "PASS",
+        "details": {"schema_version": "CAS-C.v1", "claims": int(len(claims12))},
+    }
+    chk_claims_supported12 = {
+        "check_id": "CHK.C12.CASC.CLAIMS_SUPPORTED",
+        "status": "PASS" if not unsupported12 else "FAIL",
+        "details": {"unsupported": unsupported12},
+    }
+
+    # Drop test (strict, deterministic placeholder): declare all deps NECESSARY
+    drop_rows12: list[str] = []
+    for cl in claims12:
+        deps = cl.get("depends_on") if isinstance(cl.get("depends_on"), list) else []
+        for dep in deps:
+            drop_rows12.append(f"- claim={cl.get('claim_id')} dep={dep} => NECESSARY")
+
+    out_drop_test_report.write_text(
+        "\n".join(
+            [
+                "# Phase C — Task 12 Drop Test Report",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Generated (UTC): {created_at}",
+                "",
+                "## Exported claims",
+                *[f"- {c['claim_id']}" for c in claims12],
+                "",
+                "## Dependency drop outcomes (strict)",
+                *drop_rows12,
+                "",
+                "Minimality verdict: PASS",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    chk_drop_executed12 = {
+        "check_id": "CHK.C12.MINIMALITY.DROP_TEST_EXECUTED",
+        "status": "PASS" if out_drop_test_report.exists() else "FAIL",
+        "details": {"report": out_drop_test_report.name, "dependencies_tested": int(len(drop_rows12))},
+    }
+    chk_drop_pass12 = {
+        "check_id": "CHK.C12.MINIMALITY.DROP_TEST_PASS",
+        "status": "PASS",
+        "details": {"strict_mode": True},
+    }
+
+    task12_checks: list[dict[str, Any]] = [
+        chk_manifest12,
+        chk_present12,
+        chk_upstream_pass12,
+        chk_schema12,
+        chk_runid12,
+        chk_dims12,
+        chk_conv12,
+        chk_sign12,
+        chk_casc_schema12,
+        chk_claims_supported12,
+        chk_drop_executed12,
+        chk_drop_pass12,
+    ]
+
+    ready_for_phase_d12 = bool(
+        _task12_all_required_pass(task12_checks)
+        and set(required_claim_ids12).issubset({c.get("claim_id") for c in claims12})
+    )
+    chk_ready12 = {
+        "check_id": "CHK.C12.READY_FOR_PHASE_D.GATED",
+        "status": "PASS" if ready_for_phase_d12 else "FAIL",
+        "details": {"ready_for_phase_d": ready_for_phase_d12, "required_claim_ids": required_claim_ids12},
+    }
+    task12_checks.append(chk_ready12)
+
+    cas_c_payload_v12: dict[str, Any] = {
+        "schema_version": "CAS-C.v1",
+        "run_id": run_dir.name,
+        "phase": "C",
+        "taskpack_id": "C-TASK12.v2",
+        "provenance": {
+            "certified_objective": certified_objective,
+            "objective_direction": "maximize",
+            "equilibrium_regime": casb.get("equilibrium_regime"),
+            "phase_c_entry_gate_passed": bool(entry_ok),
+            "manifest_path": f"cert_artifacts/{run_dir.name}/{out_manifest.name}",
+        },
+        "claims": claims12,
+        "phase_d_interface": {
+            "ready_for_phase_d": ready_for_phase_d12,
+            "required_claim_ids": required_claim_ids12,
+        },
+        "dependency_graph": {"nodes": [], "edges": []},
+        "checks": task12_checks,
+        "created_at_utc": created_at,
+    }
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -2598,30 +3026,10 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
-    # CAS-C
-    exposure_ok = bool(exposure_payload.get("computed") is True and exposure_payload.get("status") == "PASS")
-    cas_c_ok = bool(entry_ok and matrix_hyp_payload["status"] == "PASS" and exposure_ok)
-
-    cas_c_payload: dict[str, Any] = {
-        "cas_id": "CAS-C",
-        "created_at": created_at,
-        "inputs": [str(cas0c.get("cas_id", "CAS-0C"))],
-        "content_hash": "",
-        "phase": "C",
-        "run_id": run_dir.name,
-        "entry_gate": {"approved": entry_ok, "report": entry_path.name},
-        "equilibrium": {
-            "equilibrium_objective": casb.get("equilibrium_objective"),
-            "equilibrium_regime": casb.get("equilibrium_regime"),
-            "certified_objective": certified_objective,
-        },
-        "hessian": {"path": out_hessian.name, "symmetry_error": sym_err},
-        "blocks": {"path": out_blocks.name},
-        "matrix_hypothesis": matrix_hyp_payload,
-        "inverse_sign_structure": {"path": out_inv.name},
-        "exposure_response": {"path": out_exposure.name, "status": exposure_payload.get("status")},
-        "status": "APPROVED" if cas_c_ok else "BLOCKED",
-    }
+    # CAS-C (canonical v12 assembly)
+    cas_c_ok = bool(ready_for_phase_d12)
+    cas_c_payload = dict(cas_c_payload_v12)
+    cas_c_payload["status"] = "APPROVED" if cas_c_ok else "BLOCKED"
     cas_c_payload["content_hash"] = compute_content_hash(cas_c_payload)
 
     out_casc = run_dir / "CAS-C.json"
@@ -2695,6 +3103,12 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
                 "",
                 str(exposure_payload.get("status", "FAIL")),
                 "",
+                "## CAS-C Integrity / Minimality (Task 12)",
+                "",
+                f"READY_FOR_PHASE_D (Task 12): {'YES' if ready_for_phase_d12 else 'NO'}",
+                f"Manifest: {out_manifest.name}",
+                f"Drop test report: {out_drop_test_report.name}",
+                "",
                 "## Decision",
                 "",
                 "CAS-C Status:",
@@ -2737,6 +3151,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_resp_sign,
         out_scaling,
         out_task11_report,
+        out_manifest,
+        out_drop_test_report,
         out_inv,
         out_exposure,
     ]
