@@ -58,6 +58,33 @@ def _safe_relpath(path: Path, start: Path) -> str:
         return os.path.relpath(str(path), start=str(start))
 
 
+def _get_casa_certified_objective(casa: dict) -> str | None:
+    """
+    Resolve CAS-A certified objective convention across schema variants.
+    """
+    derivative_def = casa.get("derivative_definition", {})
+    if isinstance(derivative_def, dict):
+        value = derivative_def.get("certified_objective")
+        if value:
+            return value
+
+    # legacy fallback
+    value = casa.get("certified_objective")
+    if value:
+        return value
+
+    return None
+
+
+def _get_casa_certified_objective_source(casa: dict) -> str:
+    derivative_def = casa.get("derivative_definition", {})
+    if isinstance(derivative_def, dict) and derivative_def.get("certified_objective"):
+        return "derivative_definition.certified_objective"
+    if casa.get("certified_objective"):
+        return "certified_objective (legacy)"
+    return "missing"
+
+
 def build_cas0c(run_dir: Path, *, phase_c_entry_report: Path) -> tuple[Path, Path, Path]:
     integrity_note = ""
     try:
@@ -82,7 +109,8 @@ def build_cas0c(run_dir: Path, *, phase_c_entry_report: Path) -> tuple[Path, Pat
     eq_obj = casb.get("equilibrium_objective")
     eq_regime = casb.get("equilibrium_regime")
 
-    casa_obj = (casa.get("derivative_definition") or {}).get("certified_objective")
+    casa_obj = _get_casa_certified_objective(casa)
+    casa_obj_source = _get_casa_certified_objective_source(casa)
     casb_obj = casb.get("certified_objective")
 
     verified_imports: list[dict[str, Any]] = []
@@ -99,9 +127,9 @@ def build_cas0c(run_dir: Path, *, phase_c_entry_report: Path) -> tuple[Path, Pat
             {
                 "import_id": "P1.CLAIM.COUPLING_OPERATOR_CONVENTION",
                 "kind": "upstream_cas_fact",
-                "source_ref": f"{casa_path.name}:derivative_definition.certified_objective + {casb_path.name}:equilibrium_* + certified_objective",
+                "source_ref": f"{casa_path.name}:{casa_obj_source} + {casb_path.name}:equilibrium_* + certified_objective",
                 "status": "VERIFIED",
-                "notes": f"CAS-A/CAS-B objective convention aligned: {casa_obj}.",
+                "notes": f"CAS-A convention source: {casa_obj_source}. CAS-A/CAS-B objective convention aligned: {casa_obj}.",
             }
         )
 
