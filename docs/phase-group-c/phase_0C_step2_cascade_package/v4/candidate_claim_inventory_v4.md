@@ -1,0 +1,21 @@
+# Candidate Claim Inventory (v4)
+
+Paper 0 / Paper 1 are **idea documents**. These claim IDs are used only for Step 2 auditing.
+
+## Paper 0 candidates
+- P0.CLAIM.C2_REGULARITY_ON_INTERIOR
+- P0.CLAIM.STRUCTURAL_LOCALITY_AXIOM
+- P0.CLAIM.STRUCTURAL_COORDINATES_EXIST
+
+## Paper 1 candidates (operator framing ideas)
+- P1.CLAIM.EQUILIBRIUM_HESSIAN_WELL_DEFINED
+- P1.CLAIM.HESSIAN_SELF_ADJOINT
+- P1.CLAIM.COUPLING_OPERATOR_CONVENTION
+- P1.CLAIM.POSITIVE_DEFINITE_COUPLING
+- P1.CLAIM.SUSCEPTIBILITY_EXISTS
+- P1.CLAIM.INVERSE_NORM_BOUND  # spectral; UNVERIFIED unless escalated
+
+## Finite-dimensional tool imports (non-spectral-first)
+- TOOL.NEUMANN_SERIES_INVERSION
+- TOOL.BLOCK_NORM_INVERSION_BOUND
+- TOOL.DIAGONAL_DOMINANCE_MARGIN

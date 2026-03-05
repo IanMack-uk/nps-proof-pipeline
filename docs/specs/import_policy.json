@@ -1,0 +1,18 @@
+{
+  "policy": "nps-phase-order-v1",
+  "phase_order": [
+    "phase_0a",
+    "phase_a",
+    "phase_a_prime",
+    "phase_0b",
+    "phase_b",
+    "phase_b_prime",
+    "phase_0c",
+    "phase_c",
+    "phase_c_prime",
+    "phase_0d",
+    "phase_d",
+    "phase_d_prime",
+    "phase_f"
+  ]
+}
