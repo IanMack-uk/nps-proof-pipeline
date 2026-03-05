@@ -220,6 +220,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     tol_sym = 1e-10
     sym_err = float(np.max(np.abs(H - H.T)))
 
+    # === TASKPACK 1: OPERATOR LAYER ===
     # ---------------------------------------------------------------------
     # Taskpack 1 (Operator Layer): emit OPERATOR_LAYER.json + report.
     # This is an additional artefact-only step; it must not modify Phase C
@@ -413,6 +414,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 3: HESSIAN ARTEFACTS ===
     # ---------------------------------------------------------------------
     # Taskpack 3 (Hessian artefacts): make HESSIAN_MATRIX.json audit-grade
     # with required checks and a run-root report.
@@ -546,6 +548,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
 
     write_json(out_hessian, hessian_matrix_payload)
 
+    # === TASKPACK 4: BLOCK DECOMPOSITION ===
     # ---------------------------------------------------------------------
     # Taskpack 4 (Block decomposition): emit HESSIAN_BLOCKS.json + report.
     # Must not modify Phase C gating semantics.
@@ -662,6 +665,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     write_json(out_inv, inv_payload)
     write_json(out_exposure, exposure_payload)
 
+    # === TASKPACK 5: LOCALITY/SPARSITY ===
     # ---------------------------------------------------------------------
     # Taskpack 5 (Locality/Sparsity certification): emit HESSIAN_SPARSITY_CERT.json
     # + report. Must not modify Phase C gating semantics.
@@ -805,6 +809,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 6: DIAGONAL DOMINANCE ===
     # ---------------------------------------------------------------------
     # Taskpack 6 (Diagonal Dominance certification): emit DIAGONAL_DOMINANCE_CERT.json
     # + report. Must not modify Phase C gating semantics.
@@ -977,6 +982,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 7: COMPARISON INEQUALITIES ===
     # ---------------------------------------------------------------------
     # Taskpack 7 (Comparison inequalities / Z-matrix certification)
     # Artefact-only; must not modify Phase C gating semantics.
@@ -1192,6 +1198,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 8: NEUMANN-SERIES BOUNDS ===
     # ---------------------------------------------------------------------
     # Taskpack 8 (Neumann-series inversion bounds)
     # Artefact-only; must not modify Phase C gating semantics.
@@ -1394,6 +1401,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 9: M-MATRIX CRITERIA ===
     # ---------------------------------------------------------------------
     # Taskpack 9 (M-matrix criteria and inverse positivity)
     # Must fail loudly if required upstream artefacts are missing.
@@ -1604,14 +1612,19 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # === TASKPACK 10: SELECTED INVERSE ENTRIES ===
     # ---------------------------------------------------------------------
     # Taskpack 10 (Selected inverse entries and Phase D interface)
     # Deterministic selection + witnesses; must not modify Phase C gating.
     # ---------------------------------------------------------------------
     out_sel_inv = run_dir / "SELECTED_INVERSE_ENTRIES.json"
 
+    task10_missing_deps = False
+    task10_missing_details: dict[str, Any] = {}
+
     if not out_blocks.exists():
-        raise RuntimeError("Task 10: missing required input HESSIAN_BLOCKS.json")
+        task10_missing_deps = True
+        task10_missing_details["missing"] = ["HESSIAN_BLOCKS.json"]
 
     inv_sign_path = run_dir / "INVERSE_POSITIVITY_CERT.json"
     neumann_bound_path = run_dir / "NEUMANN_SERIES_BOUND.json"
@@ -1650,19 +1663,27 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         inv_entrywise_nonnegative = False
         inv_notes = "Using NEUMANN_SERIES_CERT.json as fallback; does not certify entrywise sign."
     else:
-        raise RuntimeError(
-            "Task 10: missing inverse-sign source (expected INVERSE_POSITIVITY_CERT.json or NEUMANN_SERIES_BOUND.json / NEUMANN_SERIES_CERT.json)"
-        )
+        task10_missing_deps = True
+        inv_kind = "MISSING"
+        inv_source_path = None
+        inv_entrywise_nonnegative = None
+        inv_notes = "Missing inverse-sign source (expected INVERSE_POSITIVITY_CERT.json or NEUMANN_SERIES_BOUND.json / NEUMANN_SERIES_CERT.json)."
 
-    blocks_json10 = _read_json(out_blocks)
-    blocks10 = blocks_json10.get("blocks") if isinstance(blocks_json10.get("blocks"), dict) else {}
-    Hww_raw10 = blocks10.get("w_w")
-    if not isinstance(Hww_raw10, list):
-        raise RuntimeError("Task 10: missing blocks['w_w'] in HESSIAN_BLOCKS.json")
-    Hww10 = np.asarray(Hww_raw10, dtype=float)
-    if Hww10.ndim != 2 or Hww10.shape[0] != Hww10.shape[1]:
-        raise RuntimeError("Task 10: blocks['w_w'] must be a square matrix")
-    dim10 = int(Hww10.shape[0])
+    dim10 = 0
+    if not task10_missing_deps:
+        blocks_json10 = _read_json(out_blocks)
+        blocks10 = blocks_json10.get("blocks") if isinstance(blocks_json10.get("blocks"), dict) else {}
+        Hww_raw10 = blocks10.get("w_w")
+        if not isinstance(Hww_raw10, list):
+            task10_missing_deps = True
+            task10_missing_details["missing"] = (task10_missing_details.get("missing") or []) + ["HESSIAN_BLOCKS.blocks.w_w"]
+        else:
+            Hww10 = np.asarray(Hww_raw10, dtype=float)
+            if Hww10.ndim != 2 or Hww10.shape[0] != Hww10.shape[1]:
+                task10_missing_deps = True
+                task10_missing_details["invalid"] = {"w_w_shape": [int(x) for x in Hww10.shape]}
+            else:
+                dim10 = int(Hww10.shape[0])
 
     rule_id10 = "C10.RULE.MINIMAL_PHASED_INTERFACE.v1"
     rule_text10 = (
@@ -1679,7 +1700,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     selection_hash10 = hashlib.sha256(canonical_selected10.encode("utf-8")).hexdigest()
 
     selected_entries10: list[dict[str, Any]] = []
-    if inv_kind == "INVERSE_POSITIVITY_CERT" and inv_entrywise_nonnegative is True:
+    if (not task10_missing_deps) and inv_kind == "INVERSE_POSITIVITY_CERT" and inv_entrywise_nonnegative is True:
         for i, j in pairs10:
             selected_entries10.append(
                 {"i": int(i), "j": int(j), "sign": "+", "source": "INVERSE_POSITIVITY_CERT"}
@@ -1701,7 +1722,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         and selection_hash10 == hashlib.sha256(canonical_selected10.encode("utf-8")).hexdigest()
     )
     chk_signs_ok10 = bool(
-        inv_kind == "INVERSE_POSITIVITY_CERT"
+        (not task10_missing_deps)
+        and inv_kind == "INVERSE_POSITIVITY_CERT"
         and inv_entrywise_nonnegative is True
         and all(e.get("sign") == "+" and e.get("source") == "INVERSE_POSITIVITY_CERT" for e in selected_entries10)
     )
@@ -1740,6 +1762,7 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
                 "inverse_sign_source_kind": inv_kind,
                 "entrywise_nonnegative": inv_entrywise_nonnegative,
                 "notes": inv_notes,
+                "dependency_guard": {"missing_deps": task10_missing_deps, **task10_missing_details},
             },
         )
     )
