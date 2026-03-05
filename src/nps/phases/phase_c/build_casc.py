@@ -79,6 +79,13 @@ def _task3_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task2_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("ok") is not True:
+            return False
+    return True
+
+
 def _mk_check(*, id: str, ok: bool, details: dict[str, Any]) -> dict[str, Any]:
     return {
         "id": id,
@@ -407,6 +414,299 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
                 "## Decision",
                 "",
                 f"Task 1 status: {'PASS' if operator_layer_ok else 'FAIL'}",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    # === TASKPACK 2: THETA FAMILY ===
+    # ---------------------------------------------------------------------
+    # Taskpack 2 (θ-family + H_wθ): emit THETA_FAMILY.json + H_WTHETA.json + report.
+    # Artefact-only; must not modify Phase C gating semantics.
+    # ---------------------------------------------------------------------
+    out_theta_family = run_dir / "THETA_FAMILY.json"
+    out_hwtheta = run_dir / "H_WTHETA.json"
+
+    task2_inputs_ok = bool(casa_path.exists() and casb_path.exists() and cas0c_path.exists() and entry_path.exists())
+
+    theta_family_id = "edge_local_v1"
+    dim_w2 = int(w_star.shape[0])
+    theta_dim2 = int(dim_w2)
+    labels2 = [f"theta:k={k}" for k in range(theta_dim2)]
+    labels_hash2 = hashlib.sha256(
+        json.dumps(labels2, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    ).hexdigest()
+
+    H_wtheta = np.eye(dim_w2, dtype=float)
+    H_wtheta_list = _matrix_to_list(H_wtheta)
+
+    tol_sign2 = 1e-12
+    H_wtheta_sign = _sign_matrix(H_wtheta, tol=tol_sign2)
+    violations_nonneg2 = int(np.sum(np.asarray(H_wtheta) < -tol_sign2))
+    violations_nonpos2 = int(np.sum(np.asarray(H_wtheta) > tol_sign2))
+    nonnegative2 = bool(violations_nonneg2 == 0)
+    nonpositive2 = bool(violations_nonpos2 == 0)
+    mixed_sign2 = bool((not nonnegative2) and (not nonpositive2))
+
+    if mixed_sign2:
+        violations2 = 0
+    elif nonnegative2:
+        violations2 = violations_nonneg2
+    elif nonpositive2:
+        violations2 = violations_nonpos2
+    else:
+        violations2 = 0
+
+    nnz2 = int(np.sum(np.abs(H_wtheta) > 0.0))
+    nnz_by_col2 = [int(np.sum(np.abs(H_wtheta[:, j]) > 0.0)) for j in range(theta_dim2)]
+    max_support_radius2 = 0
+
+    selected_inverse_path2 = run_dir / "SELECTED_INVERSE_ENTRIES.json"
+    readiness_slice_skipped2 = not selected_inverse_path2.exists()
+    readiness_slice_details2: dict[str, Any] = {}
+    if readiness_slice_skipped2:
+        readiness_slice_details2 = {
+            "skipped": True,
+            "reason": "SELECTED_INVERSE_ENTRIES.json not present; readiness slice is optional.",
+        }
+    else:
+        try:
+            sel_inv2 = _read_json(selected_inverse_path2)
+            sel_obj2 = sel_inv2.get("selection", {}).get("selected", {}) if isinstance(sel_inv2.get("selection"), dict) else {}
+            sel_indices2 = sel_obj2.get("indices") if isinstance(sel_obj2, dict) else None
+            if isinstance(sel_indices2, list) and all(isinstance(i, int) for i in sel_indices2):
+                rows = [int(i) for i in sel_indices2 if 0 <= int(i) < dim_w2]
+                slice_mat = H_wtheta[rows, :] if rows else np.zeros((0, theta_dim2), dtype=float)
+                slice_viol_nonneg = int(np.sum(np.asarray(slice_mat) < -tol_sign2))
+                slice_viol_nonpos = int(np.sum(np.asarray(slice_mat) > tol_sign2))
+                slice_nonneg = bool(slice_viol_nonneg == 0)
+                slice_nonpos = bool(slice_viol_nonpos == 0)
+                slice_mixed = bool((not slice_nonneg) and (not slice_nonpos))
+                if slice_mixed:
+                    slice_violations = 0
+                elif slice_nonneg:
+                    slice_violations = slice_viol_nonneg
+                elif slice_nonpos:
+                    slice_violations = slice_viol_nonpos
+                else:
+                    slice_violations = 0
+                readiness_slice_details2 = {
+                    "skipped": False,
+                    "selected_indices": rows,
+                    "row_count": int(len(rows)),
+                    "sign_pattern": {
+                        "tolerance": tol_sign2,
+                        "nonnegative": slice_nonneg,
+                        "nonpositive": slice_nonpos,
+                        "mixed_sign": slice_mixed,
+                        "violations": int(slice_violations),
+                    },
+                }
+            else:
+                readiness_slice_details2 = {
+                    "skipped": True,
+                    "reason": "SELECTED_INVERSE_ENTRIES.json present but selection.selected.indices not readable.",
+                }
+        except Exception:  # noqa: BLE001
+            readiness_slice_details2 = {
+                "skipped": True,
+                "reason": "Failed to parse SELECTED_INVERSE_ENTRIES.json; readiness slice skipped.",
+            }
+
+    task2_checks: list[dict[str, Any]] = []
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.INPUTS.PRESENT",
+            ok=task2_inputs_ok,
+            details={
+                "CAS-A.json": casa_path.exists(),
+                "CAS-B.json": casb_path.exists(),
+                "CAS-0C.json": cas0c_path.exists(),
+                "PhaseC_ENTRY_REPORT.md": entry_path.exists(),
+                "SELECTED_INVERSE_ENTRIES.json": selected_inverse_path2.exists(),
+            },
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.THETA_FAMILY.DEFINED",
+            ok=bool(theta_family_id and theta_dim2 == len(labels2)),
+            details={"theta_family_id": theta_family_id, "theta_dim": theta_dim2, "labels_len": int(len(labels2))},
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.LABELS.DETERMINISTIC",
+            ok=bool(isinstance(labels_hash2, str) and len(labels_hash2) == 64),
+            details={"labels_hash": labels_hash2},
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.H_WTHETA.COMPUTED",
+            ok=bool(H_wtheta.shape[0] == dim_w2 and H_wtheta.shape[1] == theta_dim2),
+            details={"computed": True, "format": "dense"},
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.H_WTHETA.SHAPE_MATCH",
+            ok=bool(tuple(H_wtheta.shape) == (dim_w2, theta_dim2)),
+            details={"shape": [int(H_wtheta.shape[0]), int(H_wtheta.shape[1])], "expected": [dim_w2, theta_dim2]},
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.H_WTHETA.FINITE_VALUES",
+            ok=bool(np.isfinite(H_wtheta).all()),
+            details={"all_finite": bool(np.isfinite(H_wtheta).all())},
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.H_WTHETA.SIGN_PATTERN_RECORDED",
+            ok=True,
+            details={
+                "tolerance": tol_sign2,
+                "nonnegative": nonnegative2,
+                "nonpositive": nonpositive2,
+                "mixed_sign": mixed_sign2,
+                "violations": int(violations2),
+            },
+        )
+    )
+    task2_checks.append(
+        _mk_check(
+            id="CHK.C2.READINESS_SLICE.RECORDED",
+            ok=True,
+            details=readiness_slice_details2,
+        )
+    )
+
+    task2_ok = _task2_all_required_pass(task2_checks)
+
+    theta_family_payload: dict[str, Any] = {
+        "schema_version": "C-THETA-FAMILY.v2",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "theta_family_id": theta_family_id,
+        "scope": "pointwise_at_w_star",
+        "definition": {
+            "pattern": "perturbation_basis",
+            "phi_theta_form": "Phi_cert(w,theta) = Phi_cert(w) + sum_k theta_k Psi_k(w)",
+            "psi_family_description": "edge-local basis: Psi_e(w) = w_e",
+            "psi_basis_type": "edge_local",
+            "requires_graph_incidence": True,
+        },
+        "theta_dim": theta_dim2,
+        "labels": labels2,
+        "w_coordinate_system": {
+            "dim_w": dim_w2,
+            "edge_ordering_ref": "OPERATOR_LAYER.json",
+            "notes": "w indices follow the implicit RealPhiV0Spec edge ordering recorded in OPERATOR_LAYER.json.",
+        },
+        "references": {
+            "cas_a": "CAS-A.json",
+            "cas_b": "CAS-B.json",
+            "selected_inverse_entries": "SELECTED_INVERSE_ENTRIES.json" if selected_inverse_path2.exists() else "",
+        },
+    }
+
+    hwtheta_payload: dict[str, Any] = {
+        "schema_version": "C-H_WTHETA.v2",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "shape": [dim_w2, theta_dim2],
+        "format": "dense",
+        "data": H_wtheta_list,
+        "tolerance": 0.0,
+        "sparsity_summary": {
+            "nnz": nnz2,
+            "nnz_by_col": nnz_by_col2,
+            "support_metric": "index_distance (order-dependent)",
+            "max_support_radius": max_support_radius2,
+        },
+        "sign_pattern": {
+            "tolerance": tol_sign2,
+            "nonnegative": nonnegative2,
+            "nonpositive": nonpositive2,
+            "mixed_sign": mixed_sign2,
+            "violations": int(violations2),
+        },
+        "sources": {
+            "theta_family": "THETA_FAMILY.json",
+            "cas_a": "CAS-A.json",
+            "cas_b": "CAS-B.json",
+        },
+    }
+
+    write_json(out_theta_family, theta_family_payload)
+    write_json(out_hwtheta, hwtheta_payload)
+
+    out_task2_report = run_dir / "PhaseC_TASK2_THETA_FAMILY_REPORT.md"
+    out_task2_report.write_text(
+        "\n".join(
+            [
+                "# Phase C Task 2 — θ-Family Definition + H_wθ Report (Template)",
+                "",
+                f"Run ID: **{run_dir.name}**",
+                f"Generated (UTC): `{created_at}`",
+                "",
+                "## Summary",
+                "",
+                f"- Selected θ-family: `{theta_family_id}`",
+                "- Scope: `pointwise_at_w_star`",
+                f"- dim_w: `{dim_w2}`",
+                f"- theta_dim: `{theta_dim2}`",
+                "- H_wθ format: `dense`",
+                f"- Status: **{'DONE' if task2_ok else 'BLOCKED'}**",
+                "",
+                "## Inputs (run root)",
+                "",
+                f"- CAS-A.json: {'✅' if casa_path.exists() else '❌'}",
+                f"- CAS-B.json: {'✅' if casb_path.exists() else '❌'}",
+                f"- CAS-0C.json: {'✅' if cas0c_path.exists() else '❌'}",
+                f"- PhaseC_ENTRY_REPORT.md: {'✅' if entry_path.exists() else '❌'}",
+                f"- SELECTED_INVERSE_ENTRIES.json (optional): {'✅' if selected_inverse_path2.exists() else '❌'}",
+                "",
+                "## Definition adopted",
+                "",
+                "State:",
+                "\\[",
+                "\\Phi_{\\mathrm{cert}}(w,\\theta) = \\Phi_{\\mathrm{cert}}(w) + \\sum_k \\theta_k\\,\\Psi_k(w)",
+                "\\]",
+                "and describe \\Psi_k for the chosen family.",
+                "",
+                "## Deterministic coordinate mapping",
+                "",
+                "Explain how w-indices correspond to edges (and nodes/motifs if used), and where the ordering comes from.",
+                "",
+                "## H_wθ artefact summary",
+                "",
+                f"- Shape: `({dim_w2}, {theta_dim2})`",
+                f"- Sparsity: nnz=`{nnz2}`, nnz_by_col=`{nnz_by_col2}`, max_support_radius=`{max_support_radius2}` (state metric)",
+                f"- Sign pattern (tol `{tol_sign2}`): nonnegative={nonnegative2} / nonpositive={nonpositive2} / mixed={mixed_sign2} / violations={int(violations2)}",
+                "",
+                "## Task-11 readiness slice (if Task 10 exists)",
+                "",
+                "If `SELECTED_INVERSE_ENTRIES.json` exists:",
+                "- list selected indices/pairs",
+                "- summarize the sign pattern of `H_wθ` restricted to those rows",
+                "",
+                "## Checks",
+                "",
+                "| Check ID | Status | Notes |",
+                "|---|---|---|",
+                *[
+                    f"| {chk['id']} | {chk.get('status','FAIL')} | {json.dumps(chk.get('details', {}), sort_keys=True)} |"
+                    for chk in task2_checks
+                ],
+                "",
+                "## Result",
+                "",
+                f"**{'DONE' if task2_ok else 'BLOCKED'}**",
                 "",
             ]
         )
@@ -2029,6 +2329,9 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
     return out_casc, out_report, [
         out_operator_layer,
         out_operator_report,
+        out_theta_family,
+        out_hwtheta,
+        out_task2_report,
         out_hessian,
         out_task3_report,
         out_blocks,
