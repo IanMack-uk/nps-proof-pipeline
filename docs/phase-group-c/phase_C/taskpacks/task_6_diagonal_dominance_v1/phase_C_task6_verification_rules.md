@@ -16,14 +16,13 @@ All check results must appear in the run-root report and in the corresponding JS
 - PASS condition:
 - FAIL condition:
 - Evidence source: upstream / computed
-### CHK.C6.DDOM.MARGINS_COMPUTED
+### CHK.C6.DOMINANCE.MARGINS_COMPUTED
 - Description:
 - PASS condition:
 - FAIL condition:
 - Evidence source: upstream / computed
-### CHK.C6.DDOM.STRICT_PASS
+### CHK.C6.DOMINANCE.STRICT_PASS
 - Description:
 - PASS condition:
 - FAIL condition:
 - Evidence source: upstream / computed
-

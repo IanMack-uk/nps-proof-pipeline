@@ -93,6 +93,13 @@ def _task5_all_required_pass(checks: list[dict[str, Any]]) -> bool:
     return True
 
 
+def _task6_all_required_pass(checks: list[dict[str, Any]]) -> bool:
+    for chk in checks:
+        if chk.get("ok") is not True:
+            return False
+    return True
+
+
 def _phase_c_entry_approved(path: Path) -> bool:
     lines = path.read_text(encoding="utf-8").strip().splitlines()
     return bool(lines) and lines[-1].strip() == "Phase C Entry Gate: APPROVED"
@@ -761,6 +768,175 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         encoding="utf-8",
     )
 
+    # ---------------------------------------------------------------------
+    # Taskpack 6 (Diagonal Dominance certification): emit DIAGONAL_DOMINANCE_CERT.json
+    # + report. Must not modify Phase C gating semantics.
+    # ---------------------------------------------------------------------
+    out_ddom = run_dir / "DIAGONAL_DOMINANCE_CERT.json"
+
+    if not out_blocks.exists():
+        raise RuntimeError("Task 6: missing required input HESSIAN_BLOCKS.json")
+    if not out_hessian.exists():
+        raise RuntimeError("Task 6: missing required input HESSIAN_MATRIX.json")
+    if not out_sparsity.exists():
+        raise RuntimeError("Task 6: missing required input HESSIAN_SPARSITY_CERT.json")
+
+    blocks_json_6 = _read_json(out_blocks)
+    blocks_6 = blocks_json_6.get("blocks") if isinstance(blocks_json_6.get("blocks"), dict) else {}
+    Hww_raw = blocks_6.get("w_w")
+    if not isinstance(Hww_raw, list):
+        raise RuntimeError("Task 6: missing required blocks['w_w'] in HESSIAN_BLOCKS.json")
+
+    Hww = np.asarray(Hww_raw, dtype=float)
+    if Hww.ndim != 2 or Hww.shape[0] != Hww.shape[1]:
+        raise RuntimeError("Task 6: blocks['w_w'] must be a square matrix")
+
+    n6 = int(Hww.shape[0])
+    C = -Hww
+
+    diag6 = np.diag(C)
+    absC6 = np.abs(C)
+    row_sum_abs6 = np.sum(absC6, axis=1)
+    row_sum_off6 = row_sum_abs6 - np.abs(diag6)
+    margins6 = diag6 - row_sum_off6
+
+    row_metrics6: list[dict[str, Any]] = []
+    for i in range(n6):
+        margin_i = float(margins6[i])
+        row_metrics6.append(
+            {
+                "row": int(i),
+                "diag": float(diag6[i]),
+                "row_sum_off": float(row_sum_off6[i]),
+                "margin": margin_i,
+                "strict": bool(margin_i > 0.0),
+            }
+        )
+
+    min_margin6 = float(np.min(margins6)) if n6 > 0 else float("nan")
+    min_margin_row6 = int(np.argmin(margins6)) if n6 > 0 else -1
+
+    # Derived sign pattern metrics for downstream tasks.
+    tol_sign6 = 1e-12
+    offdiag6 = C.copy()
+    np.fill_diagonal(offdiag6, 0.0)
+    offdiag_max6 = float(np.max(offdiag6)) if n6 > 1 else 0.0
+    off_diagonal_nonpositive6 = bool(offdiag_max6 <= tol_sign6)
+    candidate_z_matrix6 = off_diagonal_nonpositive6
+
+    task6_checks: list[dict[str, Any]] = []
+    task6_checks.append(
+        _mk_check(
+            id="CHK.C6.C_MATRIX.DEFINED",
+            ok=bool(np.all(np.isfinite(C))),
+            details={
+                "dimension": n6,
+                "definition": "C := -H where H is blocks['w_w'] from HESSIAN_BLOCKS.json",
+            },
+        )
+    )
+    task6_checks.append(
+        _mk_check(
+            id="CHK.C6.DOMINANCE.MARGINS_COMPUTED",
+            ok=bool(len(row_metrics6) == n6 and np.all(np.isfinite(margins6))),
+            details={
+                "dimension": n6,
+                "min_margin": min_margin6,
+            },
+        )
+    )
+    task6_checks.append(
+        _mk_check(
+            id="CHK.C6.DOMINANCE.STRICT_PASS",
+            ok=bool(np.isfinite(min_margin6) and min_margin6 > 0.0),
+            details={
+                "min_margin": min_margin6,
+                "min_margin_row": min_margin_row6,
+            },
+        )
+    )
+
+    task6_ok = _task6_all_required_pass(task6_checks)
+
+    ddom_payload: dict[str, Any] = {
+        "schema_version": "C-TASK06.v2",
+        "run_id": run_dir.name,
+        "generated_utc": created_at,
+        "sources": {
+            "HESSIAN_MATRIX": str(out_hessian),
+            "HESSIAN_BLOCKS": str(out_blocks),
+            "HESSIAN_SPARSITY": str(out_sparsity),
+        },
+        "matrix_definition": {
+            "base_matrix": "H",
+            "coupling_matrix": "C := -H",
+            "block": "w_w",
+        },
+        "row_metrics": row_metrics6,
+        "witnesses": {
+            "min_margin_row": min_margin_row6,
+            "min_margin": min_margin6,
+        },
+        "derived_sign_pattern": {
+            "off_diagonal_nonpositive": off_diagonal_nonpositive6,
+            "candidate_Z_matrix": candidate_z_matrix6,
+            "tolerance": tol_sign6,
+        },
+        "checks": task6_checks,
+        "status": "PASS" if task6_ok else "FAIL",
+    }
+
+    write_json(out_ddom, ddom_payload)
+
+    out_task6_report = run_dir / "PhaseC_TASK6_DIAGONAL_DOMINANCE_REPORT.md"
+    out_task6_report.write_text(
+        "\n".join(
+            [
+                "# Phase C — Task 6 Report — Diagonal Dominance Certification",
+                "",
+                f"Run ID: {run_dir.name}",
+                f"Date (UTC): {created_at}",
+                "Generated by: nps.phases.phase_c.build_casc (Taskpack 6 step)",
+                "",
+                "Artifacts written (run root):",
+                f"- DIAGONAL_DOMINANCE_CERT.json: {out_ddom.name}",
+                f"- PhaseC_TASK6_DIAGONAL_DOMINANCE_REPORT.md: {out_task6_report.name}",
+                "",
+                "---",
+                "",
+                "## Matrix definition",
+                "",
+                "C := -H, where H is blocks['w_w'] from HESSIAN_BLOCKS.json",
+                "",
+                "## Summary",
+                "",
+                f"- dimension: {n6}",
+                f"- min_margin: {min_margin6}",
+                f"- min_margin_row: {min_margin_row6}",
+                f"- strict_diagonal_dominance: {bool(np.isfinite(min_margin6) and min_margin6 > 0.0)}",
+                "",
+                "## Derived sign pattern",
+                "",
+                f"- off_diagonal_nonpositive: {off_diagonal_nonpositive6}",
+                f"- candidate_Z_matrix: {candidate_z_matrix6}",
+                f"- tolerance: {tol_sign6}",
+                "",
+                "## Checks",
+                "",
+                "| Check | Status |",
+                "|---|---|",
+                *[f"| {chk['id']} | {chk.get('status','FAIL')} |" for chk in task6_checks],
+                "",
+                "## Result",
+                "",
+                "DONE" if task6_ok else "BLOCKED",
+                "",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
     out_task3_report = run_dir / "PhaseC_TASK3_HESSIAN_ARTIFACTS_REPORT.md"
     out_task3_report.write_text(
         "\n".join(
@@ -938,6 +1114,8 @@ def build_casc(run_dir: Path) -> tuple[Path, Path, list[Path]]:
         out_task4_report,
         out_sparsity,
         out_task5_report,
+        out_ddom,
+        out_task6_report,
         out_inv,
         out_exposure,
     ]
