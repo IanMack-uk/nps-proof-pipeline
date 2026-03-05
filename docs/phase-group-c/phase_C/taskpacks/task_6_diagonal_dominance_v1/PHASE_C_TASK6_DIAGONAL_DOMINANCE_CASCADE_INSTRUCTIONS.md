@@ -1,88 +1,146 @@
-# Taskpack 6 — Diagonal Dominance Certification — Cascade Instructions
+# Phase C Taskpack 6 — Diagonal Dominance Certification (FINAL)
 
-## Goal
-
-Produce **deterministic, auditable artefacts** for:
-
-- `DIAGONAL_DOMINANCE_CERT.json`
-- `PhaseC_TASK6_DIAGONAL_DOMINANCE_REPORT.md`
-
-…and a run-root report:
-
-- `PhaseC_TASK6_DIAGONAL_DOMINANCE_REPORT.md`
-
-This taskpack is **governance-sensitive**:
-- Do not “verify” mathematics by reading Paper 0/1/2/3 or the thesis.
-- You may *quote them as PROV ideas* in `PROV-*` artefacts only.
-- VERIFIED = upstream CAS + computed checks.
+Taskpack ID: C-TASK06  
+Schema Version: C-TASK06.v2  
+Generated: 2026-03-05T13:57:56.233098Z
 
 ---
 
-## Target run
+# Objective
 
-- Run ID: `RUN_ID_TODO`
-- Run root: `cert_artifacts/RUN_ID_TODO/`
+Extend
 
----
+src/nps/phases/phase_c/build_casc.py
 
-## Required repo search (Cascade must do this)
+so that Phase C runs produce the artefacts:
 
-Search for existing implementations before adding new code.
+DIAGONAL_DOMINANCE_CERT.json  
+PhaseC_TASK6_DIAGONAL_DOMINANCE_REPORT.md
 
-Suggested search terms:
-- `diagonal dominance`
-- `hessian` / `HESSIAN_`
-- `block` / `partition`
-- `dominance` / `diagonal dominance`
-- `comparison` / `Z-matrix` / `M-matrix`
-- `Neumann` / `||A|| < 1`
-- `inverse sign` / `susceptibility`
-- `H_wtheta` / `cross-derivative`
-- `dw_dtheta`
-
-Suggested locations:
-- `src/nps/phases/phase_c/`
-- `src/nps/models/`
-- `src/nps/audit/`
-- `src/nps/certification/`
-
-If an implementation already exists, **reuse it** and add checks/reporting instead of forking.
+The step must compute strict diagonal dominance for the coupling matrix.
 
 ---
 
-## Procedure (high-level)
+# Required Inputs
 
-1. **Load authoritative inputs** from the run root only.
-2. If this task depends on earlier taskpack artefacts, verify they exist (fail loudly if not).
-3. Compute the required quantities deterministically.
-4. Run the verification rules in `phase_C_task6_verification_rules.md`.
-5. Write artefacts to the run root.
-6. Write the report using `phaseC_TASK6_REPORT_TEMPLATE.md`.
+Load the following run-root artefacts:
 
----
+HESSIAN_MATRIX.json  
+HESSIAN_BLOCKS.json  
+HESSIAN_SPARSITY_CERT.json
 
-## Required check IDs
+Optional:
 
-Your output JSON must contain results for these check IDs:
+OPERATOR_LAYER.json
 
-- `CHK.C6.C_MATRIX.DEFINED`
-- `CHK.C6.DDOM.MARGINS_COMPUTED`
-- `CHK.C6.DDOM.STRICT_PASS`
+Fail immediately if required files are missing.
 
 ---
 
-## Output schema
+# Matrix Definitions
 
-Conform to:
-- `CAS-C_TASK6_SPEC.md` for VERIFIED artefacts
-- `PROV-C_TASK6_SPEC.md` for any unverified candidates
+Let
+
+H := ∇²_w Φ_cert(w*, θ)
+
+Define coupling matrix
+
+C := -H
 
 ---
 
-## Commit policy (recommended)
+# Matrix Slice
 
-- Commit code + docs.
-- Prefer a run transcript doc under:
-  - `docs/phase-group-c/phase_C/RUNS/RUN_ID_TODO.md`
-- Do **not** commit `cert_artifacts/` outputs unless you have an explicit exception policy.
+Use the structural block from Taskpack 4:
 
+blocks["w_w"]
+
+from HESSIAN_BLOCKS.json.
+
+---
+
+# Dominance Computation
+
+For each row i:
+
+row_sum_off(i) = Σ_j≠i |C_ij|
+
+margin_i = C_ii − row_sum_off(i)
+
+Record
+
+min_margin = min_i margin_i  
+max_margin = max_i margin_i
+
+Strict diagonal dominance holds if
+
+min_margin > 0
+
+---
+
+# Additional Structural Metrics (Required)
+
+Populate the following fields in DIAGONAL_DOMINANCE_CERT.json:
+
+matrix_definition  
+row_metrics  
+witnesses  
+derived_sign_pattern
+
+These fields must follow the schema defined in
+
+CAS-C_TASK6_SPEC.md
+
+---
+
+# Required Checks
+
+Emit check objects with the structure:
+
+id / ok / status / details
+
+Checks required:
+
+CHK.C6.C_MATRIX.DEFINED  
+CHK.C6.DOMINANCE.MARGINS_COMPUTED  
+CHK.C6.DOMINANCE.STRICT_PASS
+
+---
+
+# Output Artefact
+
+Write
+
+cert_artifacts/<run_id>/DIAGONAL_DOMINANCE_CERT.json
+
+and
+
+PhaseC_TASK6_DIAGONAL_DOMINANCE_REPORT.md
+
+---
+
+# Commit Policy
+
+Commit code only.  
+Do not commit cert_artifacts outputs.
+
+---
+
+# Execution
+
+Run Phase C normally:
+
+PYTHONPATH=src python -m nps.phases.phase_c.build_casc \
+  --run-id RUN_ID_TODO \
+  --run-root cert_artifacts/RUN_ID_TODO
+
+---
+
+# Result
+
+This taskpack certifies strict diagonal dominance of the coupling matrix
+and prepares structural metrics required for
+
+Taskpack 7 — Comparison Inequalities  
+Taskpack 8 — Neumann-Series Bounds  
+Taskpack 9 — M-Matrix Certification
