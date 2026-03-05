@@ -9,6 +9,8 @@ CANONICAL_CAS = {
     "CAS-0B.json",
     "CAS-B.json",
     "CAS-Bp.json",
+    "CAS-0C.json",
+    "CAS-C.json",
 }
 
 
